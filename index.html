@@ -3,161 +3,116 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Emoji Crush 4D Ultra</title>
+    <title>Emoji Blast Pro Max</title>
     <style>
-        /* 4D Animated Professional Background */
         body { 
-            background: linear-gradient(135deg, #1a0033 0%, #4b0082 50%, #000033 100%);
-            background-size: 300% 300%; animation: bgShift 10s ease infinite;
-            margin: 0; padding: 0; display: flex; flex-direction: column; 
-            height: 100vh; width: 100vw; font-family: 'Segoe UI', sans-serif; overflow: hidden; touch-action: none;
+            background: radial-gradient(circle, #1a0033, #000); margin: 0; padding: 0; 
+            display: flex; flex-direction: column; height: 100vh; width: 100vw; 
+            overflow: hidden; touch-action: none; font-family: sans-serif;
         }
-        @keyframes bgShift { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
-
-        /* Modern Glass Score Board */
-        .score-container {
+        .header {
             height: 12vh; width: 100%; display: flex; justify-content: center; align-items: center;
-            background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(15px);
-            border-bottom: 2px solid rgba(255, 255, 255, 0.2); box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            background: rgba(255, 255, 255, 0.05); border-bottom: 2px solid cyan;
         }
-        .score-box { text-align: center; color: gold; }
-        #score { font-size: 45px; font-weight: 900; text-shadow: 0 0 20px gold; }
-
-        /* Full Screen Grid with Big Emojis */
+        #score { font-size: 38px; font-weight: 900; color: cyan; text-shadow: 0 0 15px cyan; }
         .grid { 
-            flex-grow: 1; display: grid; 
-            grid-template-columns: repeat(7, 1fr); grid-template-rows: repeat(9, 1fr);
-            width: 100vw; gap: 3px; padding: 10px; box-sizing: border-box;
-            background: rgba(255,255,255,0.05);
+            flex-grow: 1; display: grid; grid-template-columns: repeat(7, 1fr); 
+            grid-template-rows: repeat(9, 1fr); width: 100vw; gap: 4px; padding: 10px; 
+            box-sizing: border-box; background: rgba(255,255,255,0.02);
         }
-
         .candy { 
-            display: flex; align-items: center; justify-content: center;
-            font-size: 11vw; /* Bade Emojis */
-            user-select: none; transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            filter: drop-shadow(0 5px 10px rgba(0,0,0,0.3));
+            display: flex; align-items: center; justify-content: center; font-size: 10vw;
+            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
-
-        /* 4D Pop-up Text */
         #msg { 
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            font-size: 80px; font-weight: 900; color: #fff; z-index: 100;
-            text-shadow: 0 0 30px #ff007f, 0 0 60px #ff007f; display: none; pointer-events: none;
-            animation: bounceIn 0.6s ease-out;
+            font-size: 70px; font-weight: 900; color: #fff; z-index: 100;
+            text-shadow: 0 0 30px #ff007f; display: none; pointer-events: none;
+            animation: pop 0.5s ease-out;
         }
-        @keyframes bounceIn { 0% { transform: translate(-50%, -50%) scale(0.2); opacity: 0; } 100% { transform: translate(-50%, -50%) scale(1); opacity: 1; } }
+        @keyframes pop { 0% { transform: translate(-50%, -50%) scale(0.2); } 100% { transform: translate(-50%, -50%) scale(1); } }
     </style>
 </head>
 <body>
-
-    <div class="score-container">
-        <div class="score-box">
-            <div style="font-size: 14px; letter-spacing: 2px;">SCORE</div>
-            <div id="score">0</div>
-        </div>
-    </div>
-
-    <div id="msg">SWEET! 🍬</div>
+    <div class="header"><div id="score">SCORE: 0</div></div>
+    <div id="msg">SWEET! ✨</div>
     <div class="grid" id="grid"></div>
-
     <script>
         const grid = document.getElementById('grid');
         const scoreDisplay = document.getElementById('score');
         const msg = document.getElementById('msg');
         const width = 7, height = 9;
-        const items = ['🍭', '🍓', '🍇', '🍒', '💎', '🧨', '🚀']; // 🧨 is Grenade, 🚀 is Booster
-        let squares = [];
-        let score = 0;
+        const items = ['🍭', '💎', '🚀', '🔥', '🍓', '💣', '🌟']; 
+        let squares = [], score = 0;
 
-        // Sound System
+        // Sound Logic
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        function playSound(freq, type = 'sine') {
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.type = type; osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
-            osc.connect(gain); gain.connect(audioCtx.destination);
-            osc.start(); osc.stop(audioCtx.currentTime + 0.1);
+        function playSfx(f, t = 'sine') {
+            const o = audioCtx.createOscillator(); const g = audioCtx.createGain();
+            o.type = t; o.frequency.setValueAtTime(f, audioCtx.currentTime);
+            g.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            g.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+            o.connect(g); g.connect(audioCtx.destination);
+            o.start(); o.stop(audioCtx.currentTime + 0.1);
         }
 
         function createBoard() {
             for (let i = 0; i < width * height; i++) {
-                const square = document.createElement('div');
-                square.className = 'candy'; square.setAttribute('id', i);
-                square.innerHTML = items[Math.floor(Math.random() * 5)];
-                grid.appendChild(square); squares.push(square);
-                square.addEventListener('touchstart', tStart);
-                square.addEventListener('touchend', tEnd);
+                const sq = document.createElement('div');
+                sq.className = 'candy'; sq.setAttribute('id', i);
+                sq.innerHTML = items[Math.floor(Math.random() * 5)];
+                grid.appendChild(sq); squares.push(sq);
+                sq.addEventListener('touchstart', (e) => {
+                    dId = parseInt(sq.id); sX = e.touches[0].clientX; sY = e.touches[0].clientY;
+                    sq.style.transform = "scale(0.8)";
+                });
+                sq.addEventListener('touchend', (e) => {
+                    sq.style.transform = "scale(1)";
+                    let eX = e.changedTouches[0].clientX, eY = e.changedTouches[0].clientY;
+                    let dX = eX - sX, dY = eY - sY, tId = dId;
+                    if (Math.abs(dX) > Math.abs(dY)) {
+                        if (dX > 30 && dId % width !== width - 1) tId = dId + 1;
+                        else if (dX < -30 && dId % width !== 0) tId = dId - 1;
+                    } else {
+                        if (dY > 30 && dId + width < width * height) tId = dId + width;
+                        else if (dY < -30 && dId - width >= 0) tId = dId - width;
+                    }
+                    if (tId !== dId) {
+                        let temp = squares[dId].innerHTML;
+                        squares[dId].innerHTML = squares[tId].innerHTML;
+                        squares[tId].innerHTML = temp;
+                        if (temp === '💣') triggerBomb(tId);
+                        playSfx(400); setTimeout(checkMatches, 150);
+                    }
+                });
             }
         }
 
-        let sX, sY, dId;
-        function tStart(e) { dId = parseInt(this.id); sX = e.touches.clientX; sY = e.touches.clientY; this.style.transform = "scale(0.8)"; }
-
-        function tEnd(e) {
-            this.style.transform = "scale(1)";
-            let eX = e.changedTouches.clientX, eY = e.changedTouches.clientY;
-            let dX = eX - sX, dY = eY - sY, tId = dId;
-
-            if (Math.abs(dX) > Math.abs(dY)) {
-                if (dX > 35 && dId % width !== width - 1) tId = dId + 1;
-                else if (dX < -35 && dId % width !== 0) tId = dId - 1;
-            } else {
-                if (dY > 35 && dId + width < width * height) tId = dId + width;
-                else if (dY < -35 && dId - width >= 0) tId = dId - width;
-            }
-
-            if (tId !== dId) {
-                let temp = squares[dId].innerHTML;
-                squares[dId].innerHTML = squares[tId].innerHTML;
-                squares[tId].innerHTML = temp;
-                
-                // Booster Logic
-                if (temp === '🧨') { triggerGrenade(tId); }
-                else if (temp === '🚀') { triggerRocket(tId); }
-                
-                playSound(600);
-                setTimeout(checkMatches, 150);
-            }
-        }
-
-        function triggerGrenade(idx) {
+        function triggerBomb(idx) {
             let area = [idx, idx-1, idx+1, idx-width, idx+width, idx-width-1, idx-width+1, idx+width-1, idx+width+1];
             area.forEach(i => { if(squares[i]) squares[i].innerHTML = items[Math.floor(Math.random()*5)]; });
-            showMsg('BOOM! 💥'); playSound(200, 'square');
-            score += 200; scoreDisplay.innerText = score;
-        }
-
-        function triggerRocket(idx) {
-            let rowStart = idx - (idx % width);
-            for(let i=0; i<width; i++) squares[rowStart + i].innerHTML = items[Math.floor(Math.random()*5)];
-            showMsg('ROCKET! 🚀'); playSound(800, 'sawtooth');
-            score += 150; scoreDisplay.innerText = score;
-        }
-
-        function showMsg(txt) {
-            msg.innerText = txt; msg.style.display = 'block';
-            setTimeout(() => msg.style.display = 'none', 800);
+            score += 150; scoreDisplay.innerText = "SCORE: " + score; playSfx(100, 'square');
         }
 
         function checkMatches() {
             let found = false;
             for (let i = 0; i < width * height; i++) {
                 let r3 = [i, i+1, i+2], c3 = [i, i+width, i+width*2];
-                let current = squares[i].innerHTML;
-                if (current === '🧨' || current === '🚀') continue;
-
-                if (i % width < width - 2 && r3.every(idx => squares[idx] && squares[idx].innerHTML === current)) {
-                    score += 50; found = true;
-                    r3.forEach(idx => squares[idx].innerHTML = Math.random() > 0.9 ? '🧨' : items[Math.floor(Math.random()*5)]);
+                let cur = squares[i].innerHTML;
+                if (cur === '💣' || cur === '🌟') continue;
+                if (i % width < width - 2 && r3.every(idx => squares[idx] && squares[idx].innerHTML === cur)) {
+                    score += 60; found = true;
+                    r3.forEach(idx => squares[idx].innerHTML = Math.random() > 0.9 ? '💣' : items[Math.floor(Math.random()*5)]);
                 }
-                if (i < width * (height - 2) && c3.every(idx => squares[idx] && squares[idx].innerHTML === current)) {
-                    score += 50; found = true;
-                    c3.forEach(idx => squares[idx].innerHTML = Math.random() > 0.9 ? '🚀' : items[Math.floor(Math.random()*5)]);
+                if (i < width * (height - 2) && c3.every(idx => squares[idx] && squares[idx].innerHTML === cur)) {
+                    score += 60; found = true;
+                    c3.forEach(idx => squares[idx].innerHTML = Math.random() > 0.9 ? '🌟' : items[Math.floor(Math.random()*5)]);
                 }
             }
-            if (found) { scoreDisplay.innerText = score; showMsg('NICE! ✨'); playSound(1000); }
+            if (found) { 
+                scoreDisplay.innerText = "SCORE: " + score; playSfx(800);
+                msg.style.display = 'block'; setTimeout(() => msg.style.display = 'none', 600);
+            }
         }
         createBoard();
     </script>
