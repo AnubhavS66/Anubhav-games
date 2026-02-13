@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Bhai Ka Candy Match 🍭</title>
+    <style>
+        body { background: radial-gradient(#6a11cb, #2575fc); font-family: 'Arial', sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; overflow: hidden; color: white; }
+        h1 { margin-top: 10px; text-shadow: 2px 2px #000; font-size: 24px; }
+        .score-board { font-size: 20px; font-weight: bold; background: rgba(0,0,0,0.5); padding: 10px 20px; border-radius: 20px; margin-bottom: 10px; }
+        .grid { width: 320px; height: 320px; display: flex; flex-wrap: wrap; background: rgba(255,255,255,0.2); border: 4px solid #fff; border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .grid div { width: 40px; height: 40px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; font-size: 20px; transition: transform 0.2s ease; touch-action: none; }
+        .grid div:active { transform: scale(1.2); z-index: 10; }
+    </style>
+</head>
+<body>
+
+    <h1>Candy Crush Pro 🍭</h1>
+    <div class="score-board">Score: <span id="score">0</span></div>
+    <div class="grid" id="grid"></div>
+
+    <script>
+        const grid = document.querySelector('.grid');
+        const scoreDisplay = document.getElementById('score');
+        const width = 8;
+        const candies = ['🍎', '🍇', '🍊', '🍋', '🫐', '💎'];
+        let squares = [];
+        let score = 0;
+
+        // 1. Board Banana
+        function createBoard() {
+            for (let i = 0; i < width * width; i++) {
+                const square = document.createElement('div');
+                square.setAttribute('draggable', true);
+                square.setAttribute('id', i);
+                let randomColor = candies[Math.floor(Math.random() * candies.length)];
+                square.innerHTML = randomColor;
+                grid.appendChild(square);
+                squares.push(square);
+            }
+        }
+        createBoard();
+
+        // 2. Swapping Logic (Mobile Touch)
+        let colorBeingDragged, colorBeingReplaced, squareIdBeingDragged, squareIdBeingReplaced;
+
+        squares.forEach(square => square.addEventListener('touchstart', dragStart));
+        squares.forEach(square => square.addEventListener('touchend', dragEnd));
+        squares.forEach(square => square.addEventListener('touchmove', e => {
+            let touch = e.touches[0];
+            let target = document.elementFromPoint(touch.clientX, touch.clientY);
+            if (target && target.parentNode === grid) {
+                squareIdBeingReplaced = parseInt(target.id);
+            }
+        }));
+
+        function dragStart(e) {
+            colorBeingDragged = this.innerHTML;
+            squareIdBeingDragged = parseInt(this.id);
+        }
+
+        function dragEnd() {
+            let validMoves = [
+                squareIdBeingDragged -1, squareIdBeingDragged -width,
+                squareIdBeingDragged +1, squareIdBeingDragged +width
+            ];
+            let validMove = validMoves.includes(squareIdBeingReplaced);
+
+            if (squareIdBeingReplaced && validMove) {
+                colorBeingReplaced = squares[squareIdBeingReplaced].innerHTML;
+                squares[squareIdBeingReplaced].innerHTML = colorBeingDragged;
+                squares[squareIdBeingDragged].innerHTML = colorBeingReplaced;
+                checkMatches();
+            }
+        }
+
+        // 3. Matching Logic (Simple 3 in a row)
+        function checkMatches() {
+            // Row Match
+            for (let i = 0; i < 62; i++) {
+                let rowOfThree = [i, i+1, i+2];
+                let decidedColor = squares[i].innerHTML;
+                const isBlank = squares[i].innerHTML === '';
+
+                if(rowOfThree.every(index => squares[index].innerHTML === decidedColor && !isBlank)) {
+                    score += 3;
+                    scoreDisplay.innerHTML = score;
+                    rowOfThree.forEach(index => {
+                        squares[index].innerHTML = candies[Math.floor(Math.random() * candies.length)];
+                    });
+                }
+            }
+        }
+
+        // Auto check matches every 100ms
+        window.setInterval(function(){
+            checkMatches();
+        }, 100);
+
+    </script>
+</body>
+</html>
