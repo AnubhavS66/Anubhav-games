@@ -2,239 +2,164 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Candy Crush Pro | Premium</title>
-    <link href="https://fonts.googleapis.com" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Emoji Crush 4D Ultra</title>
     <style>
-        :root {
-            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            --candy-shadow: 0 4px 10px rgba(0,0,0,0.2);
-            --board-bg: rgba(255, 255, 255, 0.1);
+        /* 4D Animated Professional Background */
+        body { 
+            background: linear-gradient(135deg, #1a0033 0%, #4b0082 50%, #000033 100%);
+            background-size: 300% 300%; animation: bgShift 10s ease infinite;
+            margin: 0; padding: 0; display: flex; flex-direction: column; 
+            height: 100vh; width: 100vw; font-family: 'Segoe UI', sans-serif; overflow: hidden; touch-action: none;
+        }
+        @keyframes bgShift { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+
+        /* Modern Glass Score Board */
+        .score-container {
+            height: 12vh; width: 100%; display: flex; justify-content: center; align-items: center;
+            background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(15px);
+            border-bottom: 2px solid rgba(255, 255, 255, 0.2); box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        .score-box { text-align: center; color: gold; }
+        #score { font-size: 45px; font-weight: 900; text-shadow: 0 0 20px gold; }
+
+        /* Full Screen Grid with Big Emojis */
+        .grid { 
+            flex-grow: 1; display: grid; 
+            grid-template-columns: repeat(7, 1fr); grid-template-rows: repeat(9, 1fr);
+            width: 100vw; gap: 3px; padding: 10px; box-sizing: border-box;
+            background: rgba(255,255,255,0.05);
         }
 
-        body {
-            margin: 0;
-            background: #0f0c29;
-            background: linear-gradient(to bottom, #24243e, #302b63, #0f0c29);
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            font-family: 'Outfit', sans-serif;
-            color: white;
-            overflow: hidden;
-            touch-action: none;
+        .candy { 
+            display: flex; align-items: center; justify-content: center;
+            font-size: 11vw; /* Bade Emojis */
+            user-select: none; transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            filter: drop-shadow(0 5px 10px rgba(0,0,0,0.3));
         }
 
-        /* Top Bar Professional Style */
-        .game-header {
-            width: 90%;
-            max-width: 400px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            padding: 15px;
-            background: var(--board-bg);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            border: 1px solid rgba(255,255,255,0.1);
+        /* 4D Pop-up Text */
+        #msg { 
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            font-size: 80px; font-weight: 900; color: #fff; z-index: 100;
+            text-shadow: 0 0 30px #ff007f, 0 0 60px #ff007f; display: none; pointer-events: none;
+            animation: bounceIn 0.6s ease-out;
         }
-
-        .stat-box { text-align: center; }
-        .stat-label { font-size: 10px; text-transform: uppercase; letter-spacing: 2px; color: #aaa; }
-        .stat-value { font-size: 24px; font-weight: 900; color: #00d2ff; }
-
-        /* Professional Grid */
-        #game-board {
-            display: grid;
-            grid-template-columns: repeat(8, 1fr);
-            gap: 8px;
-            padding: 10px;
-            background: var(--board-bg);
-            border-radius: 24px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-            border: 2px solid rgba(255,255,255,0.05);
-            width: 90vw;
-            height: 90vw;
-            max-width: 400px;
-            max-height: 400px;
-        }
-
-        .tile {
-            position: relative;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 30px;
-            cursor: pointer;
-            user-select: none;
-            transition: transform 0.1s ease;
-            filter: drop-shadow(var(--candy-shadow));
-        }
-
-        .tile:active { transform: scale(0.9); }
-
-        /* Popup Score Animation */
-        .floating-text {
-            position: absolute;
-            pointer-events: none;
-            font-weight: 900;
-            color: #fff;
-            text-shadow: 0 0 10px rgba(0,0,0,0.5);
-            animation: floatUp 0.8s ease-out forwards;
-            z-index: 100;
-        }
-
-        @keyframes floatUp {
-            0% { transform: translateY(0) scale(0.5); opacity: 0; }
-            50% { opacity: 1; }
-            100% { transform: translateY(-100px) scale(1.5); opacity: 0; }
-        }
+        @keyframes bounceIn { 0% { transform: translate(-50%, -50%) scale(0.2); opacity: 0; } 100% { transform: translate(-50%, -50%) scale(1); opacity: 1; } }
     </style>
 </head>
 <body>
 
-    <div class="game-header">
-        <div class="stat-box">
-            <div class="stat-label">Score</div>
-            <div id="score" class="stat-value">0000</div>
-        </div>
-        <div class="stat-box">
-            <div class="stat-label">Target</div>
-            <div class="stat-value" style="color: #ff0078;">2500</div>
+    <div class="score-container">
+        <div class="score-box">
+            <div style="font-size: 14px; letter-spacing: 2px;">SCORE</div>
+            <div id="score">0</div>
         </div>
     </div>
 
-    <div id="game-board"></div>
+    <div id="msg">SWEET! 🍬</div>
+    <div class="grid" id="grid"></div>
 
     <script>
-        class CandyCrush {
-            constructor(containerId, scoreId) {
-                this.board = document.getElementById(containerId);
-                this.scoreDisplay = document.getElementById(scoreId);
-                this.size = 8;
-                this.candies = ['🍎', '🍇', '🍊', '🍋', '💎', '🚀'];
-                this.score = 0;
-                this.tiles = [];
-                this.init();
-            }
+        const grid = document.getElementById('grid');
+        const scoreDisplay = document.getElementById('score');
+        const msg = document.getElementById('msg');
+        const width = 7, height = 9;
+        const items = ['🍭', '🍓', '🍇', '🍒', '💎', '🧨', '🚀']; // 🧨 is Grenade, 🚀 is Booster
+        let squares = [];
+        let score = 0;
 
-            init() {
-                this.createBoard();
-                this.setupEvents();
-                // Match check on start
-                setInterval(() => this.checkMatches(), 100);
-            }
+        // Sound System
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playSound(freq, type = 'sine') {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = type; osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.1);
+        }
 
-            createBoard() {
-                for (let i = 0; i < this.size * this.size; i++) {
-                    const tile = document.createElement('div');
-                    tile.classList.add('tile');
-                    tile.setAttribute('draggable', true);
-                    tile.setAttribute('id', i);
-                    tile.innerHTML = this.getRandomCandy();
-                    this.board.appendChild(tile);
-                    this.tiles.push(tile);
-                }
-            }
-
-            getRandomCandy() {
-                return this.candies[Math.floor(Math.random() * this.candies.length)];
-            }
-
-            setupEvents() {
-                let startTileId, startX, startY;
-
-                this.board.addEventListener('touchstart', (e) => {
-                    const target = e.target.closest('.tile');
-                    if (!target) return;
-                    startTileId = parseInt(target.id);
-                    startX = e.touches[0].clientX;
-                    startY = e.touches[0].clientY;
-                });
-
-                this.board.addEventListener('touchend', (e) => {
-                    if (startTileId === undefined) return;
-                    const endX = e.changedTouches[0].clientX;
-                    const endY = e.changedTouches[0].clientY;
-                    this.handleSwipe(startTileId, startX, startY, endX, endY);
-                });
-            }
-
-            handleSwipe(id, sX, sY, eX, eY) {
-                const deltaX = eX - sX;
-                const deltaY = eY - sY;
-                let targetId = id;
-
-                if (Math.abs(deltaX) > Math.abs(deltaY)) {
-                    if (deltaX > 30 && id % 8 !== 7) targetId = id + 1;
-                    else if (deltaX < -30 && id % 8 !== 0) targetId = id - 1;
-                } else {
-                    if (deltaY > 30 && id < 56) targetId = id + 8;
-                    else if (deltaY < -30 && id >= 8) targetId = id - 8;
-                }
-
-                if (targetId !== id) this.swapTiles(id, targetId);
-            }
-
-            swapTiles(id1, id2) {
-                const temp = this.tiles[id1].innerHTML;
-                this.tiles[id1].innerHTML = this.tiles[id2].innerHTML;
-                this.tiles[id2].innerHTML = temp;
-                
-                // Feedback Haptic (if mobile)
-                if (window.navigator.vibrate) window.navigator.vibrate(50);
-            }
-
-            checkMatches() {
-                // Horizontal Match
-                for (let i = 0; i < 62; i++) {
-                    if (i % 8 > 5) continue;
-                    let matchRange = [i, i+1, i+2];
-                    let type = this.tiles[i].innerHTML;
-                    if (type !== '' && matchRange.every(idx => this.tiles[idx].innerHTML === type)) {
-                        this.processMatch(matchRange);
-                    }
-                }
-                // Vertical Match
-                for (let i = 0; i < 48; i++) {
-                    let matchRange = [i, i+8, i+16];
-                    let type = this.tiles[i].innerHTML;
-                    if (type !== '' && matchRange.every(idx => this.tiles[idx].innerHTML === type)) {
-                        this.processMatch(matchRange);
-                    }
-                }
-            }
-
-            processMatch(indices) {
-                indices.forEach(idx => {
-                    this.tiles[idx].innerHTML = '';
-                    this.animatePop(this.tiles[idx]);
-                });
-                this.score += indices.length * 10;
-                this.scoreDisplay.innerText = this.score.toString().padStart(4, '0');
-                
-                setTimeout(() => {
-                    indices.forEach(idx => this.tiles[idx].innerHTML = this.getRandomCandy());
-                }, 300);
-            }
-
-            animatePop(el) {
-                const rect = el.getBoundingClientRect();
-                const popup = document.createElement('div');
-                popup.className = 'floating-text';
-                popup.innerText = '+10';
-                popup.style.left = `${rect.left + 10}px`;
-                popup.style.top = `${rect.top}px`;
-                document.body.appendChild(popup);
-                setTimeout(() => popup.remove(), 800);
+        function createBoard() {
+            for (let i = 0; i < width * height; i++) {
+                const square = document.createElement('div');
+                square.className = 'candy'; square.setAttribute('id', i);
+                square.innerHTML = items[Math.floor(Math.random() * 5)];
+                grid.appendChild(square); squares.push(square);
+                square.addEventListener('touchstart', tStart);
+                square.addEventListener('touchend', tEnd);
             }
         }
 
-        // Initialize Game
-        const game = new CandyCrush('game-board', 'score');
+        let sX, sY, dId;
+        function tStart(e) { dId = parseInt(this.id); sX = e.touches.clientX; sY = e.touches.clientY; this.style.transform = "scale(0.8)"; }
+
+        function tEnd(e) {
+            this.style.transform = "scale(1)";
+            let eX = e.changedTouches.clientX, eY = e.changedTouches.clientY;
+            let dX = eX - sX, dY = eY - sY, tId = dId;
+
+            if (Math.abs(dX) > Math.abs(dY)) {
+                if (dX > 35 && dId % width !== width - 1) tId = dId + 1;
+                else if (dX < -35 && dId % width !== 0) tId = dId - 1;
+            } else {
+                if (dY > 35 && dId + width < width * height) tId = dId + width;
+                else if (dY < -35 && dId - width >= 0) tId = dId - width;
+            }
+
+            if (tId !== dId) {
+                let temp = squares[dId].innerHTML;
+                squares[dId].innerHTML = squares[tId].innerHTML;
+                squares[tId].innerHTML = temp;
+                
+                // Booster Logic
+                if (temp === '🧨') { triggerGrenade(tId); }
+                else if (temp === '🚀') { triggerRocket(tId); }
+                
+                playSound(600);
+                setTimeout(checkMatches, 150);
+            }
+        }
+
+        function triggerGrenade(idx) {
+            let area = [idx, idx-1, idx+1, idx-width, idx+width, idx-width-1, idx-width+1, idx+width-1, idx+width+1];
+            area.forEach(i => { if(squares[i]) squares[i].innerHTML = items[Math.floor(Math.random()*5)]; });
+            showMsg('BOOM! 💥'); playSound(200, 'square');
+            score += 200; scoreDisplay.innerText = score;
+        }
+
+        function triggerRocket(idx) {
+            let rowStart = idx - (idx % width);
+            for(let i=0; i<width; i++) squares[rowStart + i].innerHTML = items[Math.floor(Math.random()*5)];
+            showMsg('ROCKET! 🚀'); playSound(800, 'sawtooth');
+            score += 150; scoreDisplay.innerText = score;
+        }
+
+        function showMsg(txt) {
+            msg.innerText = txt; msg.style.display = 'block';
+            setTimeout(() => msg.style.display = 'none', 800);
+        }
+
+        function checkMatches() {
+            let found = false;
+            for (let i = 0; i < width * height; i++) {
+                let r3 = [i, i+1, i+2], c3 = [i, i+width, i+width*2];
+                let current = squares[i].innerHTML;
+                if (current === '🧨' || current === '🚀') continue;
+
+                if (i % width < width - 2 && r3.every(idx => squares[idx] && squares[idx].innerHTML === current)) {
+                    score += 50; found = true;
+                    r3.forEach(idx => squares[idx].innerHTML = Math.random() > 0.9 ? '🧨' : items[Math.floor(Math.random()*5)]);
+                }
+                if (i < width * (height - 2) && c3.every(idx => squares[idx] && squares[idx].innerHTML === current)) {
+                    score += 50; found = true;
+                    c3.forEach(idx => squares[idx].innerHTML = Math.random() > 0.9 ? '🚀' : items[Math.floor(Math.random()*5)]);
+                }
+            }
+            if (found) { scoreDisplay.innerText = score; showMsg('NICE! ✨'); playSound(1000); }
+        }
+        createBoard();
     </script>
 </body>
 </html>
