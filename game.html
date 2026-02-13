@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Emoji Blast - Home</title>
+    <style>
+        body { 
+            background: radial-gradient(circle, #1a0033, #000); 
+            margin: 0; display: flex; flex-direction: column; align-items: center; 
+            justify-content: center; height: 100vh; overflow: hidden; color: white;
+            font-family: 'Segoe UI', sans-serif;
+        }
+        h1 { font-size: 50px; color: #00ffff; text-shadow: 0 0 20px #00ffff; margin-bottom: 50px; }
+        
+        /* Professional Play Button */
+        .play-btn {
+            background: linear-gradient(90deg, #ff007f, #00ffff);
+            padding: 20px 60px; border: none; border-radius: 50px;
+            font-size: 30px; font-weight: 900; color: white; cursor: pointer;
+            box-shadow: 0 0 20px #ff007f; transition: 0.3s;
+        }
+        .play-btn:active { transform: scale(0.9); }
+
+        .footer { position: absolute; bottom: 20px; font-size: 14px; color: #aaa; }
+    </style>
+</head>
+<body>
+
+    <h1>EMOJI BLAST 🍭</h1>
+
+    <!-- Game Page par bhejne ke liye button -->
+    <button class="play-btn" onclick="location.href='game.html'">PLAY NOW</button>
+
+    <div class="footer">Made with ❤️ by Bhai</div>
+
+</body>
+</html>
