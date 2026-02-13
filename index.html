@@ -3,74 +3,81 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Candy Crush Ultra - Bhai Special</title>
+    <title>Candy Crush Ultra Pro</title>
     <style>
-        /* Pro Gradient Background */
+        /* Modern Animated Background */
         body { 
-            background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
-            background-size: 400% 400%; animation: gradient 10s ease infinite;
-            margin: 0; display: flex; flex-direction: column; height: 100vh;
-            font-family: 'Arial Black', sans-serif; overflow: hidden; touch-action: none; color: white;
+            background: linear-gradient(-45deg, #ff3399, #6600ff, #33ccff, #00ffcc);
+            background-size: 400% 400%; animation: gradient 15s ease infinite;
+            margin: 0; display: flex; flex-direction: column; align-items: center; 
+            height: 100vh; font-family: 'Poppins', sans-serif; overflow: hidden; touch-action: none;
         }
         @keyframes gradient { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
 
-        /* Glowing Score Board */
-        .header {
-            height: 12vh; width: 100%; display: flex; justify-content: center; align-items: center;
-            background: rgba(0, 0, 0, 0.3); backdrop-filter: blur(10px); border-bottom: 2px solid gold;
+        /* Floating Score Panel */
+        .score-container {
+            margin-top: 40px; background: rgba(255, 255, 255, 0.2); 
+            backdrop-filter: blur(15px); padding: 15px 50px; border-radius: 30px;
+            border: 2px solid rgba(255,255,255,0.5); box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            text-align: center; min-width: 150px;
         }
-        #score-container { text-align: center; text-shadow: 0 0 10px gold; }
-        #score { font-size: 45px; font-weight: 900; color: #fff; }
+        #score { font-size: 45px; font-weight: 900; color: #fff; text-shadow: 0 0 15px rgba(255,255,255,0.8); }
+        .score-label { font-size: 12px; letter-spacing: 3px; color: gold; font-weight: bold; }
 
-        /* Full Grid */
+        /* Full Grid Customization */
         .grid { 
-            flex-grow: 1; display: grid; grid-template-columns: repeat(8, 1fr); 
-            grid-template-rows: repeat(10, 1fr); width: 100vw; gap: 4px; padding: 10px;
-            box-sizing: border-box; position: relative;
+            display: grid; grid-template-columns: repeat(8, 1fr); 
+            width: 95vw; height: 110vw; max-width: 400px;
+            gap: 5px; background: rgba(0,0,0,0.2); padding: 10px; 
+            border-radius: 25px; border: 4px solid #fff; margin-top: 30px;
+            position: relative; box-shadow: 0 15px 45px rgba(0,0,0,0.5);
         }
 
         .candy { 
-            display: flex; align-items: center; justify-content: center; font-size: 32px;
-            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); user-select: none;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 32px; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer; filter: drop-shadow(0 5px 5px rgba(0,0,0,0.2));
         }
 
-        /* Message Styles */
-        #message { 
-            position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%);
-            font-size: 70px; font-weight: 900; color: #fff; z-index: 100;
-            text-shadow: 0 0 30px #ff007f; display: none; pointer-events: none;
-            animation: popOut 0.7s ease-out;
+        /* Floating Word Animations */
+        #msg { 
+            position: absolute; font-size: 50px; font-weight: 900; color: #fff;
+            text-shadow: 0 0 20px #ff007f, 0 0 40px #ff007f;
+            display: none; z-index: 1000; animation: popUp 0.8s ease-out;
         }
-        @keyframes popOut { 0% { transform: scale(0.1); opacity: 0; } 50% { transform: scale(1.3); opacity: 1; } 100% { transform: scale(1); opacity: 0; } }
+        @keyframes popUp { 0% { transform: scale(0.2); opacity: 0; } 50% { transform: scale(1.3) rotate(-5deg); opacity: 1; } 100% { transform: scale(1) translateY(-50px); opacity: 0; } }
+
+        /* Bomb Effect */
+        .bomb { animation: shake 0.2s infinite; filter: hue-rotate(90deg) brightness(1.5); }
+        @keyframes shake { 0% { transform: translate(1px, 1px); } 50% { transform: translate(-1px, -1px); } 100% { transform: translate(1px, 1px); } }
     </style>
 </head>
 <body>
 
-    <div class="header">
-        <div id="score-container">
-            <div style="font-size: 14px; letter-spacing: 3px;">TOTAL SCORE</div>
-            <div id="score">0</div>
-        </div>
+    <div class="score-container">
+        <div class="score-label">SCORE</div>
+        <div id="score">0</div>
     </div>
 
-    <div id="message">NICE! ✨</div>
+    <div id="msg">NICE! ✨</div>
     <div class="grid" id="grid"></div>
 
     <script>
         const grid = document.getElementById('grid');
         const scoreDisplay = document.getElementById('score');
-        const msg = document.getElementById('message');
-        const width = 8, height = 10;
-        const emojis = ['🍬', '🍭', '🍓', '🍇', '🍒', '💎'];
-        const words = ['NICE!', 'SWEET!', 'WOW!', 'AMAZING!'];
-        let squares = [], score = 0;
+        const msg = document.getElementById('msg');
+        const width = 8;
+        const candies = ['🍎', '🍇', '🍊', '🍋', '💎', '🚀', '💣', '🌟'];
+        const praiseWords = ['NICE!', 'SWEET!', 'DIVINE!', 'DELICIOUS!', 'TASTY!'];
+        let squares = [];
+        let score = 0;
 
         function createBoard() {
-            for (let i = 0; i < width * height; i++) {
+            for (let i = 0; i < 64; i++) {
                 const square = document.createElement('div');
                 square.className = 'candy';
                 square.setAttribute('id', i);
-                square.innerHTML = emojis[Math.floor(Math.random() * emojis.length)];
+                square.innerHTML = candies[Math.floor(Math.random() * 6)]; // First 6 only
                 grid.appendChild(square);
                 squares.push(square);
                 square.addEventListener('touchstart', tStart);
@@ -87,11 +94,11 @@
             let dX = eX - sX, dY = eY - sY, tId = dId;
 
             if (Math.abs(dX) > Math.abs(dY)) {
-                if (dX > 40 && dId % width !== width - 1) tId = dId + 1;
-                else if (dX < -40 && dId % width !== 0) tId = dId - 1;
+                if (dX > 35 && dId % 8 !== 7) tId = dId + 1;
+                else if (dX < -35 && dId % 8 !== 0) tId = dId - 1;
             } else {
-                if (dY > 40 && dId + width < width * height) tId = dId + width;
-                else if (dY < -30 && dId - width >= 0) tId = dId - width;
+                if (dY > 35 && dId + 8 < 64) tId = dId + 8;
+                else if (dY < -35 && dId - 8 >= 0) tId = dId - 8;
             }
 
             if (tId !== dId) {
@@ -99,48 +106,47 @@
                 squares[dId].innerHTML = squares[tId].innerHTML;
                 squares[tId].innerHTML = temp;
                 
-                // Bomb Feature: 10% chance
-                if (temp === '💣') {
-                    explodeBomb(tId);
-                } else {
-                    checkMatches();
-                }
+                // Bomb Activation Logic
+                if (temp === '💣') { triggerBomb(tId); return; }
+                
+                setTimeout(checkMatches, 150);
             }
         }
 
-        function explodeBomb(id) {
-            const area = [id-1, id+1, id-width, id+width, id-width-1, id-width+1, id+width-1, id+width+1];
-            area.forEach(idx => {
-                if (squares[idx]) squares[idx].innerHTML = emojis[Math.floor(Math.random()*6)];
+        function triggerBomb(idx) {
+            let area = [idx-1, idx+1, idx-8, idx+8, idx-9, idx+9, idx-7, idx+7];
+            area.forEach(i => {
+                if(squares[i]) squares[i].innerHTML = candies[Math.floor(Math.random()*6)];
             });
             score += 200;
-            updateUI("BOOM! 🔥");
+            updateScore('BOMB! 💣');
+        }
+
+        function updateScore(word) {
+            scoreDisplay.innerText = score;
+            msg.innerText = word || praiseWords[Math.floor(Math.random()*praiseWords.length)];
+            msg.style.display = 'block';
+            setTimeout(() => msg.style.display = 'none', 800);
         }
 
         function checkMatches() {
             let found = false;
-            for (let i = 0; i < width * height; i++) {
-                let r3 = [i, i+1, i+2], c3 = [i, i+width, i+width*2];
+            for (let i = 0; i < 64; i++) {
+                let r3 = [i, i+1, i+2], c3 = [i, i+8, i+16];
                 let current = squares[i].innerHTML;
-                if (current === '💣') continue;
+                if(current === '💣' || current === '🌟') continue;
 
-                if (i % width < width - 2 && r3.every(idx => squares[idx] && squares[idx].innerHTML === current)) {
-                    score += 50; found = true;
-                    r3.forEach(idx => squares[idx].innerHTML = Math.random() < 0.1 ? '💣' : emojis[Math.floor(Math.random()*6)]);
+                if (i % 8 < 6 && r3.every(idx => squares[idx] && squares[idx].innerHTML === current)) {
+                    score += 60; found = true;
+                    r3.forEach(idx => squares[idx].innerHTML = candies[Math.floor(Math.random()*6)]);
+                    if (Math.random() > 0.8) squares[i].innerHTML = '💣'; // Chance to get a bomb
                 }
-                if (i < width * (height - 2) && c3.every(idx => squares[idx] && squares[idx].innerHTML === current)) {
-                    score += 50; found = true;
-                    c3.forEach(idx => squares[idx].innerHTML = Math.random() < 0.1 ? '💣' : emojis[Math.floor(Math.random()*6)]);
+                if (i < 48 && c3.every(idx => squares[idx] && squares[idx].innerHTML === current)) {
+                    score += 60; found = true;
+                    c3.forEach(idx => squares[idx].innerHTML = candies[Math.floor(Math.random()*6)]);
                 }
             }
-            if (found) updateUI(words[Math.floor(Math.random()*words.length)]);
-        }
-
-        function updateUI(text) {
-            scoreDisplay.innerText = score;
-            msg.innerText = text;
-            msg.style.display = 'block';
-            setTimeout(() => { msg.style.display = 'none'; checkMatches(); }, 600);
+            if (found) updateScore();
         }
 
         createBoard();
