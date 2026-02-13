@@ -1,43 +1,112 @@
-            if (targetId !== draggedId) {
-                let color1 = squares[draggedId].style.backgroundColor;
-                let color2 = squares[targetId].style.backgroundColor;
-                squares[draggedId].style.backgroundColor = color2;
-                squares[targetId].style.backgroundColor = color1;
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Candy Crush Professional</title>
+    <style>
+        body { background: radial-gradient(circle, #2c003e, #000); margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; font-family: sans-serif; overflow: hidden; touch-action: none; color: white; }
+        .score-box { background: rgba(255,255,255,0.1); padding: 15px 40px; border-radius: 50px; border: 2px solid #00ffff; box-shadow: 0 0 20px #00ffff; margin-bottom: 20px; text-align: center; }
+        #score { font-size: 32px; font-weight: bold; color: #fff; }
+        .grid { 
+            display: grid; grid-template-columns: repeat(8, 1fr); 
+            width: 90vw; height: 90vw; max-width: 380px; max-height: 380px;
+            gap: 5px; background: rgba(255,255,255,0.05); padding: 10px; 
+            border-radius: 20px; border: 3px solid rgba(255,255,255,0.2); position: relative;
+        }
+        .candy { 
+            width: 100%; height: 100%; border-radius: 30%; 
+            transition: all 0.2s ease; box-shadow: inset -4px -4px 10px rgba(0,0,0,0.4);
+        }
+        #message { 
+            position: absolute; pointer-events: none; font-size: 60px; font-weight: 900;
+            color: gold; text-shadow: 0 0 20px #ff007f; display: none; z-index: 100;
+            animation: pop 0.5s ease-out;
+        }
+        @keyframes pop { 0% { transform: scale(0); } 100% { transform: scale(1.2); } }
+    </style>
+</head>
+<body>
+
+    <div class="score-box">SCORE: <span id="score">0</span></div>
+    <div id="message">GOOD! ✨</div>
+    <div class="grid" id="grid"></div>
+
+    <script>
+        const grid = document.getElementById('grid');
+        const scoreDisplay = document.getElementById('score');
+        const msg = document.getElementById('message');
+        const width = 8;
+        const candyColors = ['#FF0000', '#00FF00', '#0000FF', '#FFFF00', '#FF00FF', '#00FFFF'];
+        let squares = [];
+        let score = 0;
+
+        // Sound Function
+        function playSound() {
+            let context = new (window.AudioContext || window.webkitAudioContext)();
+            let osc = context.createOscillator();
+            let gain = context.createGain();
+            osc.connect(gain); gain.connect(context.destination);
+            osc.frequency.value = 600; gain.gain.exponentialRampToValueAtTime(0.001, context.currentTime + 0.1);
+            osc.start(); osc.stop(context.currentTime + 0.1);
+        }
+
+        function createBoard() {
+            for (let i = 0; i < width * width; i++) {
+                const square = document.createElement('div');
+                square.className = 'candy';
+                square.setAttribute('id', i);
+                square.style.backgroundColor = candyColors[Math.floor(Math.random() * candyColors.length)];
+                grid.appendChild(square);
+                squares.push(square);
+                square.addEventListener('touchstart', tStart);
+                square.addEventListener('touchend', tEnd);
+            }
+        }
+
+        let sX, sY, dId;
+        function tStart(e) { dId = parseInt(this.id); sX = e.touches[0].clientX; sY = e.touches[0].clientY; }
+
+        function tEnd(e) {
+            let eX = e.changedTouches[0].clientX, eY = e.changedTouches[0].clientY;
+            let dX = eX - sX, dY = eY - sY, tId = dId;
+            if (Math.abs(dX) > Math.abs(dY)) {
+                if (dX > 30 && dId % 8 !== 7) tId = dId + 1;
+                else if (dX < -30 && dId % 8 !== 0) tId = dId - 1;
+            } else {
+                if (dY > 30 && dId + 8 < 64) tId = dId + 8;
+                else if (dY < -30 && dId - 8 >= 0) tId = dId - 8;
+            }
+            if (tId !== dId) {
+                let c1 = squares[dId].style.backgroundColor;
+                let c2 = squares[tId].style.backgroundColor;
+                squares[dId].style.backgroundColor = c2;
+                squares[tId].style.backgroundColor = c1;
                 checkMatches();
             }
         }
 
         function checkMatches() {
-            let hasMatch = false;
-            // Rows
-            for (let i = 0; i < 62; i++) {
-                let rowOfThree = [i, i+1, i+2];
-                let color = squares[i].style.backgroundColor;
-                if (i % 8 < 6 && rowOfThree.every(idx => squares[idx].style.backgroundColor === color)) {
-                    score += 10;
-                    hasMatch = true;
-                    rowOfThree.forEach(idx => squares[idx].style.backgroundColor = candyColors[Math.floor(Math.random() * candyColors.length)]);
+            let match = false;
+            for (let i = 0; i < 64; i++) {
+                let r3 = [i, i+1, i+2], c3 = [i, i+8, i+16];
+                let col = squares[i].style.backgroundColor;
+                if (i % 8 < 6 && r3.every(idx => squares[idx] && squares[idx].style.backgroundColor === col)) {
+                    r3.forEach(idx => squares[idx].style.backgroundColor = candyColors[Math.floor(Math.random()*6)]);
+                    match = true;
+                }
+                if (i < 48 && c3.every(idx => squares[idx] && squares[idx].style.backgroundColor === col)) {
+                    c3.forEach(idx => squares[idx].style.backgroundColor = candyColors[Math.floor(Math.random()*6)]);
+                    match = true;
                 }
             }
-            // Columns
-            for (let i = 0; i < 48; i++) {
-                let colOfThree = [i, i+width, i+width*2];
-                let color = squares[i].style.backgroundColor;
-                if (colOfThree.every(idx => squares[idx].style.backgroundColor === color)) {
-                    score += 10;
-                    hasMatch = true;
-                    colOfThree.forEach(idx => squares[idx].style.backgroundColor = candyColors[Math.floor(Math.random() * candyColors.length)]);
-                }
-            }
-            if (hasMatch) {
-                scoreDisplay.innerText = score;
-                msg.style.display = 'block';
-                setTimeout(() => msg.style.display = 'none', 600);
+            if (match) {
+                score += 30; scoreDisplay.innerText = score;
+                playSound();
+                msg.style.display = 'block'; setTimeout(() => msg.style.display = 'none', 600);
             }
         }
-
         createBoard();
     </script>
 </body>
 </html>
-              
