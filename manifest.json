@@ -1,0 +1,9 @@
+{
+  "name": "Emoji Blast Pro Max",
+  "short_name": "EmojiBlast",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#1a0033",
+  "theme_color": "#ff007f",
+  "icons":
+}
