@@ -2,37 +2,119 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Emoji Blast - Home</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Emoji Blast Pro Max</title>
     <style>
         body { 
-            background: radial-gradient(circle, #1a0033, #000); 
-            margin: 0; display: flex; flex-direction: column; align-items: center; 
-            justify-content: center; height: 100vh; overflow: hidden; color: white;
-            font-family: 'Segoe UI', sans-serif;
+            background: radial-gradient(circle, #1a0033, #000); margin: 0; padding: 0; 
+            display: flex; flex-direction: column; height: 100vh; width: 100vw; 
+            overflow: hidden; touch-action: none; font-family: sans-serif;
         }
-        h1 { font-size: 50px; color: #00ffff; text-shadow: 0 0 20px #00ffff; margin-bottom: 50px; }
-        
-        /* Professional Play Button */
-        .play-btn {
-            background: linear-gradient(90deg, #ff007f, #00ffff);
-            padding: 20px 60px; border: none; border-radius: 50px;
-            font-size: 30px; font-weight: 900; color: white; cursor: pointer;
-            box-shadow: 0 0 20px #ff007f; transition: 0.3s;
+        .header {
+            height: 12vh; width: 100%; display: flex; justify-content: center; align-items: center;
+            background: rgba(255, 255, 255, 0.05); border-bottom: 2px solid cyan;
         }
-        .play-btn:active { transform: scale(0.9); }
-
-        .footer { position: absolute; bottom: 20px; font-size: 14px; color: #aaa; }
+        #score { font-size: 38px; font-weight: 900; color: cyan; text-shadow: 0 0 15px cyan; }
+        .grid { 
+            flex-grow: 1; display: grid; grid-template-columns: repeat(7, 1fr); 
+            grid-template-rows: repeat(9, 1fr); width: 100vw; gap: 4px; padding: 10px; 
+            box-sizing: border-box; background: rgba(255,255,255,0.02);
+        }
+        .candy { 
+            display: flex; align-items: center; justify-content: center; font-size: 10vw;
+            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        #msg { 
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            font-size: 70px; font-weight: 900; color: #fff; z-index: 100;
+            text-shadow: 0 0 30px #ff007f; display: none; pointer-events: none;
+            animation: pop 0.5s ease-out;
+        }
+        @keyframes pop { 0% { transform: translate(-50%, -50%) scale(0.2); } 100% { transform: translate(-50%, -50%) scale(1); } }
     </style>
 </head>
 <body>
+    <div class="header"><div id="score">SCORE: 0</div></div>
+    <div id="msg">SWEET! ✨</div>
+    <div class="grid" id="grid"></div>
+    <script>
+        const grid = document.getElementById('grid');
+        const scoreDisplay = document.getElementById('score');
+        const msg = document.getElementById('msg');
+        const width = 7, height = 9;
+        const items = ['🍭', '💎', '🚀', '🔥', '🍓', '💣', '🌟']; 
+        let squares = [], score = 0;
 
-    <h1>EMOJI BLAST 🍭</h1>
+        // Sound Logic
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playSfx(f, t = 'sine') {
+            const o = audioCtx.createOscillator(); const g = audioCtx.createGain();
+            o.type = t; o.frequency.setValueAtTime(f, audioCtx.currentTime);
+            g.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            g.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+            o.connect(g); g.connect(audioCtx.destination);
+            o.start(); o.stop(audioCtx.currentTime + 0.1);
+        }
 
-    <!-- Game Page par bhejne ke liye button -->
-    <button class="play-btn" onclick="location.href='game.html'">PLAY NOW</button>
+        function createBoard() {
+            for (let i = 0; i < width * height; i++) {
+                const sq = document.createElement('div');
+                sq.className = 'candy'; sq.setAttribute('id', i);
+                sq.innerHTML = items[Math.floor(Math.random() * 5)];
+                grid.appendChild(sq); squares.push(sq);
+                sq.addEventListener('touchstart', (e) => {
+                    dId = parseInt(sq.id); sX = e.touches[0].clientX; sY = e.touches[0].clientY;
+                    sq.style.transform = "scale(0.8)";
+                });
+                sq.addEventListener('touchend', (e) => {
+                    sq.style.transform = "scale(1)";
+                    let eX = e.changedTouches[0].clientX, eY = e.changedTouches[0].clientY;
+                    let dX = eX - sX, dY = eY - sY, tId = dId;
+                    if (Math.abs(dX) > Math.abs(dY)) {
+                        if (dX > 30 && dId % width !== width - 1) tId = dId + 1;
+                        else if (dX < -30 && dId % width !== 0) tId = dId - 1;
+                    } else {
+                        if (dY > 30 && dId + width < width * height) tId = dId + width;
+                        else if (dY < -30 && dId - width >= 0) tId = dId - width;
+                    }
+                    if (tId !== dId) {
+                        let temp = squares[dId].innerHTML;
+                        squares[dId].innerHTML = squares[tId].innerHTML;
+                        squares[tId].innerHTML = temp;
+                        if (temp === '💣') triggerBomb(tId);
+                        playSfx(400); setTimeout(checkMatches, 150);
+                    }
+                });
+            }
+        }
 
-    <div class="footer">Made with ❤️ by Bhai</div>
+        function triggerBomb(idx) {
+            let area = [idx, idx-1, idx+1, idx-width, idx+width, idx-width-1, idx-width+1, idx+width-1, idx+width+1];
+            area.forEach(i => { if(squares[i]) squares[i].innerHTML = items[Math.floor(Math.random()*5)]; });
+            score += 150; scoreDisplay.innerText = "SCORE: " + score; playSfx(100, 'square');
+        }
 
+        function checkMatches() {
+            let found = false;
+            for (let i = 0; i < width * height; i++) {
+                let r3 = [i, i+1, i+2], c3 = [i, i+width, i+width*2];
+                let cur = squares[i].innerHTML;
+                if (cur === '💣' || cur === '🌟') continue;
+                if (i % width < width - 2 && r3.every(idx => squares[idx] && squares[idx].innerHTML === cur)) {
+                    score += 60; found = true;
+                    r3.forEach(idx => squares[idx].innerHTML = Math.random() > 0.9 ? '💣' : items[Math.floor(Math.random()*5)]);
+                }
+                if (i < width * (height - 2) && c3.every(idx => squares[idx] && squares[idx].innerHTML === cur)) {
+                    score += 60; found = true;
+                    c3.forEach(idx => squares[idx].innerHTML = Math.random() > 0.9 ? '🌟' : items[Math.floor(Math.random()*5)]);
+                }
+            }
+            if (found) { 
+                scoreDisplay.innerText = "SCORE: " + score; playSfx(800);
+                msg.style.display = 'block'; setTimeout(() => msg.style.display = 'none', 600);
+            }
+        }
+        createBoard();
+    </script>
 </body>
 </html>
