@@ -3,10 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Candy Blast Bomb Version</title>
+<title>Candy Blast Final</title>
 
 <style>
-
 body{
 background: radial-gradient(circle,#1a0033,#000);
 margin:0;
@@ -57,17 +56,14 @@ font-size:40px;
 color:yellow;
 display:none;
 }
-
 </style>
 </head>
 <body>
 
 <div class="header">
-
 <div id="score">Score: 0</div>
 <div id="level">Level: 1</div>
 <div id="coins">Coins: 0</div>
-
 </div>
 
 <div id="msg"></div>
@@ -76,18 +72,18 @@ display:none;
 
 <script>
 
+const width=7;
+const height=9;
+
+const items=["🍭","💎","🚀","🔥","🍓"];
+const bomb="💣";
+
 const grid=document.getElementById("grid");
 
 const scoreDisplay=document.getElementById("score");
 const levelDisplay=document.getElementById("level");
 const coinsDisplay=document.getElementById("coins");
 const msg=document.getElementById("msg");
-
-const width=7;
-const height=9;
-
-const items=["🍭","💎","🚀","🔥","🍓"];
-const bomb="💣";
 
 let squares=[];
 
@@ -97,21 +93,15 @@ let coins=parseInt(localStorage.getItem("coins"))||0;
 
 updateUI();
 
-function saveGame(){
-
-localStorage.setItem("score",score);
-localStorage.setItem("level",level);
-localStorage.setItem("coins",coins);
-
-}
-
 function updateUI(){
 
 scoreDisplay.innerText="Score: "+score;
 levelDisplay.innerText="Level: "+level;
 coinsDisplay.innerText="Coins: "+coins;
 
-saveGame();
+localStorage.setItem("score",score);
+localStorage.setItem("level",level);
+localStorage.setItem("coins",coins);
 
 }
 
@@ -132,8 +122,6 @@ if(newLevel>level){
 
 level=newLevel;
 
-showMsg("LEVEL UP");
-
 if(level%10===0){
 
 coins+=500;
@@ -149,11 +137,7 @@ updateUI();
 
 function randomCandy(){
 
-if(Math.random()<0.1){
-
-return bomb;
-
-}
+if(Math.random()<0.1) return bomb;
 
 return items[Math.floor(Math.random()*items.length)];
 
@@ -167,11 +151,9 @@ const div=document.createElement("div");
 
 div.className="candy";
 div.id=i;
-
 div.innerHTML=randomCandy();
 
 grid.appendChild(div);
-
 squares.push(div);
 
 addSwipe(div);
@@ -197,27 +179,20 @@ div.addEventListener("touchend",(e)=>{
 let endX=e.changedTouches[0].clientX;
 let endY=e.changedTouches[0].clientY;
 
-let diffX=endX-startX;
-let diffY=endY-startY;
+let dx=endX-startX;
+let dy=endY-startY;
 
 let target=startId;
 
-if(Math.abs(diffX)>Math.abs(diffY)){
+if(Math.abs(dx)>Math.abs(dy)){
 
-if(diffX>30 && startId%width!=width-1)
-target=startId+1;
+if(dx>30 && startId%width!=width-1) target=startId+1;
+if(dx<-30 && startId%width!=0) target=startId-1;
 
-else if(diffX<-30 && startId%width!=0)
-target=startId-1;
+}else{
 
-}
-else{
-
-if(diffY>30 && startId+width<width*height)
-target=startId+width;
-
-else if(diffY<-30 && startId-width>=0)
-target=startId-width;
+if(dy>30 && startId+width<width*height) target=startId+width;
+if(dy<-30 && startId-width>=0) target=startId-width;
 
 }
 
@@ -225,12 +200,7 @@ if(target!=startId){
 
 swap(startId,target);
 
-setTimeout(()=>{
-
-checkMatches();
-dropCandies();
-
-},100);
+handleBoard();
 
 }
 
@@ -249,20 +219,15 @@ squares[b].innerHTML=temp;
 function explodeBomb(index){
 
 let area=[
-index,
-index-1,
-index+1,
-index-width,
-index+width,
-index-width-1,
-index-width+1,
-index+width-1,
-index+width+1
+index,index-1,index+1,
+index-width,index+width,
+index-width-1,index-width+1,
+index+width-1,index+width+1
 ];
 
 area.forEach(i=>{
 
-if(squares[i]){
+if(i>=0 && i<width*height){
 
 squares[i].innerHTML="";
 
@@ -271,8 +236,7 @@ squares[i].innerHTML="";
 });
 
 score+=150;
-
-showMsg("BOOM!");
+showMsg("BOOM");
 
 updateUI();
 
@@ -284,7 +248,9 @@ let found=false;
 
 for(let i=0;i<width*height;i++){
 
-if(squares[i].innerHTML==bomb){
+let val=squares[i].innerHTML;
+
+if(val==bomb){
 
 explodeBomb(i);
 found=true;
@@ -292,35 +258,41 @@ continue;
 
 }
 
-let row=[i,i+1,i+2];
+if(val=="") continue;
 
+// row
 if(i%width<width-2){
 
-let val=squares[i].innerHTML;
+if(
+squares[i+1].innerHTML==val &&
+squares[i+2].innerHTML==val
+){
 
-if(val!="" && row.every(index=>squares[index].innerHTML==val)){
+squares[i].innerHTML="";
+squares[i+1].innerHTML="";
+squares[i+2].innerHTML="";
 
 score+=60;
 found=true;
 
-row.forEach(index=>squares[index].innerHTML="");
-
 }
 
 }
 
-let col=[i,i+width,i+width*2];
-
+// column
 if(i<width*(height-2)){
 
-let val=squares[i].innerHTML;
+if(
+squares[i+width].innerHTML==val &&
+squares[i+width*2].innerHTML==val
+){
 
-if(val!="" && col.every(index=>squares[index].innerHTML==val)){
+squares[i].innerHTML="";
+squares[i+width].innerHTML="";
+squares[i+width*2].innerHTML="";
 
 score+=60;
 found=true;
-
-col.forEach(index=>squares[index].innerHTML="");
 
 }
 
@@ -334,6 +306,8 @@ updateUI();
 levelSystem();
 
 }
+
+return found;
 
 }
 
@@ -360,12 +334,25 @@ squares[i].innerHTML=randomCandy();
 
 }
 
-setInterval(()=>{
+function handleBoard(){
 
-checkMatches();
+let changed=true;
+
+let interval=setInterval(()=>{
+
+let match=checkMatches();
+
 dropCandies();
 
-},400);
+if(!match){
+
+clearInterval(interval);
+
+}
+
+},200);
+
+}
 
 createBoard();
 
