@@ -3,12 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Emoji Blast Pro Max</title>
+<title>Candy Blast Bomb Version</title>
 
 <style>
 
 body{
-background: radial-gradient(circle, #1a0033, #000);
+background: radial-gradient(circle,#1a0033,#000);
 margin:0;
 font-family:sans-serif;
 color:white;
@@ -22,13 +22,12 @@ align-items:center;
 height:60px;
 background:rgba(255,255,255,0.05);
 border-bottom:2px solid cyan;
-font-weight:bold;
 }
 
 .header div{
-font-size:20px;
 color:cyan;
-text-shadow:0 0 10px cyan;
+font-size:18px;
+font-weight:bold;
 }
 
 .grid{
@@ -66,9 +65,7 @@ display:none;
 <div class="header">
 
 <div id="score">Score: 0</div>
-
 <div id="level">Level: 1</div>
-
 <div id="coins">Coins: 0</div>
 
 </div>
@@ -90,6 +87,7 @@ const width=7;
 const height=9;
 
 const items=["🍭","💎","🚀","🔥","🍓"];
+const bomb="💣";
 
 let squares=[];
 
@@ -110,9 +108,7 @@ localStorage.setItem("coins",coins);
 function updateUI(){
 
 scoreDisplay.innerText="Score: "+score;
-
 levelDisplay.innerText="Level: "+level;
-
 coinsDisplay.innerText="Coins: "+coins;
 
 saveGame();
@@ -124,9 +120,7 @@ function showMsg(text){
 msg.innerText=text;
 msg.style.display="block";
 
-setTimeout(()=>{
-msg.style.display="none";
-},1000);
+setTimeout(()=>msg.style.display="none",800);
 
 }
 
@@ -138,19 +132,30 @@ if(newLevel>level){
 
 level=newLevel;
 
-showMsg("LEVEL UP!");
+showMsg("LEVEL UP");
 
 if(level%10===0){
 
 coins+=500;
-
-showMsg("+500 COINS BONUS!");
+showMsg("+500 Coins");
 
 }
 
 updateUI();
 
 }
+
+}
+
+function randomCandy(){
+
+if(Math.random()<0.1){
+
+return bomb;
+
+}
+
+return items[Math.floor(Math.random()*items.length)];
 
 }
 
@@ -161,44 +166,115 @@ for(let i=0;i<width*height;i++){
 const div=document.createElement("div");
 
 div.className="candy";
-
 div.id=i;
 
-div.innerHTML=items[Math.floor(Math.random()*items.length)];
+div.innerHTML=randomCandy();
 
 grid.appendChild(div);
 
 squares.push(div);
 
-div.addEventListener("click",()=>swapCandy(i));
+addSwipe(div);
 
 }
 
 }
 
-let first=null;
+let startId,startX,startY;
 
-function swapCandy(id){
+function addSwipe(div){
 
-if(first===null){
+div.addEventListener("touchstart",(e)=>{
 
-first=id;
+startId=parseInt(div.id);
+startX=e.touches[0].clientX;
+startY=e.touches[0].clientY;
 
-return;
+});
+
+div.addEventListener("touchend",(e)=>{
+
+let endX=e.changedTouches[0].clientX;
+let endY=e.changedTouches[0].clientY;
+
+let diffX=endX-startX;
+let diffY=endY-startY;
+
+let target=startId;
+
+if(Math.abs(diffX)>Math.abs(diffY)){
+
+if(diffX>30 && startId%width!=width-1)
+target=startId+1;
+
+else if(diffX<-30 && startId%width!=0)
+target=startId-1;
+
+}
+else{
+
+if(diffY>30 && startId+width<width*height)
+target=startId+width;
+
+else if(diffY<-30 && startId-width>=0)
+target=startId-width;
 
 }
 
-let second=id;
+if(target!=startId){
 
-let temp=squares[first].innerHTML;
+swap(startId,target);
 
-squares[first].innerHTML=squares[second].innerHTML;
-
-squares[second].innerHTML=temp;
+setTimeout(()=>{
 
 checkMatches();
+dropCandies();
 
-first=null;
+},100);
+
+}
+
+});
+
+}
+
+function swap(a,b){
+
+let temp=squares[a].innerHTML;
+squares[a].innerHTML=squares[b].innerHTML;
+squares[b].innerHTML=temp;
+
+}
+
+function explodeBomb(index){
+
+let area=[
+index,
+index-1,
+index+1,
+index-width,
+index+width,
+index-width-1,
+index-width+1,
+index+width-1,
+index+width+1
+];
+
+area.forEach(i=>{
+
+if(squares[i]){
+
+squares[i].innerHTML="";
+
+}
+
+});
+
+score+=150;
+
+showMsg("BOOM!");
+
+updateUI();
 
 }
 
@@ -208,23 +284,26 @@ let found=false;
 
 for(let i=0;i<width*height;i++){
 
+if(squares[i].innerHTML==bomb){
+
+explodeBomb(i);
+found=true;
+continue;
+
+}
+
 let row=[i,i+1,i+2];
 
 if(i%width<width-2){
 
 let val=squares[i].innerHTML;
 
-if(row.every(index=>squares[index].innerHTML===val)){
+if(val!="" && row.every(index=>squares[index].innerHTML==val)){
 
 score+=60;
-
 found=true;
 
-row.forEach(index=>{
-
-squares[index].innerHTML=items[Math.floor(Math.random()*items.length)];
-
-});
+row.forEach(index=>squares[index].innerHTML="");
 
 }
 
@@ -236,17 +315,12 @@ if(i<width*(height-2)){
 
 let val=squares[i].innerHTML;
 
-if(col.every(index=>squares[index].innerHTML===val)){
+if(val!="" && col.every(index=>squares[index].innerHTML==val)){
 
 score+=60;
-
 found=true;
 
-col.forEach(index=>{
-
-squares[index].innerHTML=items[Math.floor(Math.random()*items.length)];
-
-});
+col.forEach(index=>squares[index].innerHTML="");
 
 }
 
@@ -257,12 +331,41 @@ squares[index].innerHTML=items[Math.floor(Math.random()*items.length)];
 if(found){
 
 updateUI();
-
 levelSystem();
 
 }
 
 }
+
+function dropCandies(){
+
+for(let i=width*height-1;i>=0;i--){
+
+if(squares[i].innerHTML==""){
+
+if(i-width>=0){
+
+squares[i].innerHTML=squares[i-width].innerHTML;
+squares[i-width].innerHTML="";
+
+}else{
+
+squares[i].innerHTML=randomCandy();
+
+}
+
+}
+
+}
+
+}
+
+setInterval(()=>{
+
+checkMatches();
+dropCandies();
+
+},400);
 
 createBoard();
 
