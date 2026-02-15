@@ -2,224 +2,229 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Candy Crush Real</title>
+    <title>Candy Blast Pro</title>
     <style>
-        body { background:#1a1a2e; color:white; font-family:Arial; text-align:center; user-select: none; }
-        h1 { color:#ffcc00; text-shadow: 2px 2px #000; }
-        .stats-bar { background: #16213e; padding: 10px; border-radius: 10px; display: inline-block; margin-bottom: 10px; }
-        #board {
-            display:grid;
-            grid-template-columns: repeat(8, 50px);
-            grid-gap:5px;
-            justify-content:center;
-            margin-top:10px;
-            background: #0f3460;
-            padding: 10px;
-            border-radius: 10px;
-            border: 4px solid #533483;
+        body { 
+            background: radial-gradient(circle, #2c003e, #000); 
+            color: white; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            text-align: center; margin: 0; overflow-x: hidden;
         }
-        .candy {
-            width:50px; height:50px; border-radius:10px; cursor:pointer;
-            display:flex; justify-content:center; align-items:center; font-size: 25px;
-            transition: transform 0.2s;
-        }
-        .candy:active { transform: scale(0.9); }
-        .red { background: radial-gradient(circle, #ff4d4d, #b30000); }
-        .blue { background: radial-gradient(circle, #4d94ff, #0044cc); }
-        .green { background: radial-gradient(circle, #5cd65c, #1e7b1e); }
-        .yellow { background: radial-gradient(circle, #ffff66, #ccaa00); }
-        .purple { background: radial-gradient(circle, #b366ff, #6600cc); }
-        .bomb { background: #000; border: 2px solid #fff; box-shadow: 0 0 10px #fff; }
-        .selected { border: 3px solid white; box-shadow: 0 0 15px white; }
+        h1 { color: #ffcc00; margin: 10px; text-shadow: 2px 2px 5px #000; font-size: 40px; }
         
-        #withdrawBox { 
-            margin-top:20px; background: #16213e; padding: 20px; 
-            border-radius: 10px; border: 2px solid #ffcc00; display: inline-block;
+        .stats-container {
+            display: flex; justify-content: center; gap: 20px;
+            background: rgba(255, 255, 255, 0.1); padding: 15px;
+            margin: 10px auto; width: 80%; border-radius: 15px; font-size: 1.2rem;
         }
-        input { padding: 10px; border-radius: 5px; border: none; width: 200px; }
-        button { 
-            padding: 10px 20px; background: #ffcc00; border: none; 
-            border-radius: 5px; cursor: pointer; font-weight: bold; color: #000;
+
+        #board {
+            display: grid;
+            grid-template-columns: repeat(8, 60px);
+            grid-gap: 8px;
+            justify-content: center;
+            margin: 20px auto;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 15px;
+            border-radius: 15px;
+            border: 5px solid #ffcc00;
+            width: fit-content;
         }
-        button:hover { background: #e6b800; }
+
+        .candy {
+            width: 60px; height: 60px; border-radius: 12px;
+            display: flex; justify-content: center; align-items: center;
+            font-size: 35px; cursor: pointer; user-select: none;
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .candy:hover { transform: scale(1.1); background: rgba(255, 255, 255, 0.1); }
+        .selected { border: 4px solid #fff; box-shadow: 0 0 20px #fff; transform: scale(1.1); z-index: 10; }
+
+        #withdrawBox {
+            background: #16213e; padding: 25px; border-radius: 20px;
+            margin: 20px auto; width: 350px; border: 2px solid #ffcc00;
+        }
+
+        input { 
+            padding: 12px; border-radius: 8px; border: none; width: 80%; 
+            margin-bottom: 15px; font-size: 16px;
+        }
+
+        button {
+            padding: 12px 25px; background: #ffcc00; border: none;
+            border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 16px;
+            transition: 0.3s;
+        }
+
+        button:hover { background: #fff; transform: translateY(-2px); }
+        #msg { margin-top: 10px; font-weight: bold; color: #00ff00; }
     </style>
 </head>
 <body>
 
-<h1>Candy Blast</h1>
+<h1>CANDY BLAST</h1>
 
-<div class="stats-bar">
-    Score: <span id="score">0</span> | 
-    Level: <span id="level">1</span> | 
-    Coins: <span id="coins">0</span>
+<div class="stats-container">
+    <div>🏆 Score: <span id="score">0</span></div>
+    <div>⭐ Level: <span id="level">1</span></div>
+    <div>💰 Coins: <span id="coins">0</span></div>
 </div>
 
 <div id="board"></div>
 
 <div id="withdrawBox">
-    <h3>Wallet & Withdraw</h3>
-    <p>Min. Withdraw: 10,000 Coins (₹10)</p>
-    <input id="upi" placeholder="Enter UPI ID (e.g. name@apl)">
+    <h3>💰 My Wallet</h3>
+    <input id="upi" placeholder="Enter UPI ID (e.g. name@upi)">
     <button onclick="withdraw()">Withdraw Cash</button>
-    <p id="msg" style="color: #00ff00; font-weight: bold;"></p>
+    <p id="msg"></p>
+    <small style="opacity: 0.6;">Min. Withdraw: 10,000 Coins</small>
 </div>
 
 <script>
 const width = 8;
-const colors = ["red","blue","green","yellow","purple"];
+const candyTypes = ['🍎', '🍇', '🍊', '🍓', '💎', '🥝'];
 let board = [];
 let score = 0, level = 1, coins = 0;
-let firstId = null;
+let firstSelectedId = null;
 
 const boardDiv = document.getElementById("board");
 
-// Load Progress
-if(localStorage.candySave){
-    let s = JSON.parse(localStorage.candySave);
-    score = s.score; level = s.level; coins = s.coins;
-}
-
-function initGame() {
-    // Fill board with no initial matches
-    for(let i=0; i<width*width; i++) {
-        board[i] = colors[Math.floor(Math.random()*colors.length)];
+function createBoard() {
+    board = [];
+    for (let i = 0; i < width * width; i++) {
+        let randomCandy = candyTypes[Math.floor(Math.random() * candyTypes.length)];
+        board.push(randomCandy);
     }
+    // Initial cleaning (taki start mein hi matches na ho)
+    checkAndProcess();
     render();
-    updateUI();
 }
 
 function render() {
     boardDiv.innerHTML = "";
-    board.forEach((color, i) => {
-        let div = document.createElement("div");
-        div.className = `candy ${color}`;
-        if(color === "bomb") div.innerHTML = "💣";
-        div.dataset.id = i;
-        div.onclick = handleSelect;
+    board.forEach((candy, i) => {
+        const div = document.createElement("div");
+        div.className = "candy";
+        div.innerHTML = candy;
+        div.setAttribute("data-id", i);
+        div.onclick = handleSelection;
         boardDiv.appendChild(div);
     });
 }
 
-function handleSelect() {
-    let id = parseInt(this.dataset.id);
-    
-    if(firstId === null) {
-        firstId = id;
-        render();
-        boardDiv.children[firstId].classList.add("selected");
+function handleSelection() {
+    let id = parseInt(this.getAttribute("data-id"));
+
+    if (firstSelectedId === null) {
+        firstSelectedId = id;
+        this.classList.add("selected");
     } else {
-        let secondId = id;
-        if(isAdjacent(firstId, secondId)) {
-            trySwap(firstId, secondId);
+        let secondSelectedId = id;
+        if (isAdjacent(firstSelectedId, secondSelectedId)) {
+            swap(firstSelectedId, secondSelectedId);
         }
-        firstId = null;
+        firstSelectedId = null;
         render();
     }
 }
 
-function isAdjacent(a, b) {
-    let diff = Math.abs(a - b);
-    let isNext = diff === 1 && Math.floor(a/width) === Math.floor(b/width);
-    let isAbove = diff === width;
-    return isNext || isAbove;
+function isAdjacent(id1, id2) {
+    const row1 = Math.floor(id1 / width), col1 = id1 % width;
+    const row2 = Math.floor(id2 / width), col2 = id2 % width;
+    return (Math.abs(row1 - row2) + Math.abs(col1 - col2)) === 1;
 }
 
-function trySwap(a, b) {
-    // Temp swap
-    let temp = board[a];
-    board[a] = board[b];
-    board[b] = temp;
+function swap(id1, id2) {
+    let temp = board[id1];
+    board[id1] = board[id2];
+    board[id2] = temp;
 
-    if(checkMatches()) {
-        // Match found!
-        processMatches();
+    if (!checkMatches()) {
+        // Match nahi bana toh wapas swap karo
+        let back = board[id1];
+        board[id1] = board[id2];
+        board[id2] = back;
     } else {
-        // No match? Swap back
-        board[b] = board[a];
-        board[a] = temp;
+        processGame();
     }
 }
 
 function checkMatches() {
-    let matchFound = false;
-    // Check horizontal
-    for(let i=0; i<64; i++) {
-        if(i % width < width - 2) {
-            if(board[i] && board[i] === board[i+1] && board[i] === board[i+2]) matchFound = true;
+    for (let i = 0; i < 64; i++) {
+        // Horizontal
+        if (i % width < width - 2) {
+            if (board[i] && board[i] === board[i+1] && board[i] === board[i+2]) return true;
         }
-        if(i < 48) {
-            if(board[i] && board[i] === board[i+width] && board[i] === board[i+width*2]) matchFound = true;
+        // Vertical
+        if (i < 48) {
+            if (board[i] && board[i] === board[i+width] && board[i] === board[i+width*2]) return true;
         }
     }
-    return matchFound;
+    return false;
 }
 
-function processMatches() {
+function processGame() {
     let toDestroy = new Set();
 
-    // Find horizontal
-    for(let i=0; i<64; i++) {
-        if(i % width < width - 2) {
-            if(board[i] && board[i] === board[i+1] && board[i] === board[i+2]) {
+    // Check Horizontal
+    for (let i = 0; i < 64; i++) {
+        if (i % width < width - 2) {
+            if (board[i] && board[i] === board[i+1] && board[i] === board[i+2]) {
                 toDestroy.add(i); toDestroy.add(i+1); toDestroy.add(i+2);
             }
         }
-        if(i < 48) {
-            if(board[i] && board[i] === board[i+width] && board[i] === board[i+width*2]) {
+        if (i < 48) {
+            if (board[i] && board[i] === board[i+width] && board[i] === board[i+width*2]) {
                 toDestroy.add(i); toDestroy.add(i+width); toDestroy.add(i+width*2);
             }
         }
     }
 
-    if(toDestroy.size > 0) {
+    if (toDestroy.size > 0) {
         toDestroy.forEach(id => {
-            if(board[id] === "bomb") triggerBomb(id);
             board[id] = "";
             score += 10;
             coins += 2;
         });
-
-        // Chance to spawn a bomb
-        if(toDestroy.size > 3) {
-            let randomIdx = Array.from(toDestroy)[0];
-            board[randomIdx] = "bomb";
-        }
-
+        
+        updateUI();
+        
         setTimeout(() => {
-            refillBoard();
+            refill();
             render();
-            processMatches(); // Recursive for chains
-            updateUI();
-            save();
+            processGame(); // Chain reactions
         }, 300);
     }
 }
 
-function triggerBomb(i) {
-    let row = Math.floor(i/width), col = i%width;
-    for(let r=row-1; r<=row+1; r++) {
-        for(let c=col-1; c<=col+1; c++) {
-            let id = r*width + c;
-            if(id>=0 && id<64 && c>=0 && c<width) {
-                board[id] = "";
-                score += 5;
+function refill() {
+    for (let i = 0; i < width; i++) {
+        for (let j = 63; j >= 0; j--) {
+            if (board[j] === "") {
+                if (j < width) {
+                    board[j] = candyTypes[Math.floor(Math.random() * candyTypes.length)];
+                } else {
+                    let above = j - width;
+                    while (above >= 0 && board[above] === "") above -= width;
+                    if (above >= 0) {
+                        board[j] = board[above];
+                        board[above] = "";
+                    } else {
+                        board[j] = candyTypes[Math.floor(Math.random() * candyTypes.length)];
+                    }
+                }
             }
         }
     }
 }
 
-function refillBoard() {
-    for(let i=63; i>=0; i--) {
-        if(board[i] === "") {
-            let rowAbove = i - width;
-            while(rowAbove >= 0 && board[rowAbove] === "") rowAbove -= width;
-            
-            if(rowAbove >= 0) {
-                board[i] = board[rowAbove];
-                board[rowAbove] = "";
-            } else {
-                board[i] = colors[Math.floor(Math.random()*colors.length)];
-            }
+function checkAndProcess() {
+    // Initial cleanup without scoring
+    while(checkMatches()){
+        for (let i = 0; i < 64; i++) {
+            if (i % width < width - 2 && board[i] === board[i+1] && board[i] === board[i+2]) board[i] = candyTypes[Math.floor(Math.random()*6)];
+            if (i < 48 && board[i] === board[i+width] && board[i] === board[i+width*2]) board[i] = candyTypes[Math.floor(Math.random()*6)];
         }
     }
 }
@@ -227,30 +232,26 @@ function refillBoard() {
 function updateUI() {
     document.getElementById("score").innerText = score;
     document.getElementById("coins").innerText = coins;
-    level = Math.floor(score/500) + 1;
+    level = Math.floor(score / 500) + 1;
     document.getElementById("level").innerText = level;
-}
-
-function save() {
-    localStorage.candySave = JSON.stringify({score, level, coins});
 }
 
 function withdraw() {
     let upi = document.getElementById("upi").value;
-    if(!upi.includes("@")) return alert("Please enter a valid UPI ID!");
-    
-    if(coins >= 10000) {
-        let amt = coins/1000;
-        document.getElementById("msg").innerText = `Withdrawal of ₹${amt} requested to ${upi}!`;
+    if (upi.length < 5 || !upi.includes("@")) {
+        alert("Sahi UPI ID dalo bhai!");
+        return;
+    }
+    if (coins >= 10000) {
+        document.getElementById("msg").innerText = "Success! ₹" + (coins/1000) + " sent to " + upi;
         coins = 0;
-        save();
         updateUI();
     } else {
-        alert("Bhai, kam se kam 10,000 coins chahiye! Abhi aur khelo.");
+        alert("Bhai 10,000 coins hone par hi withdraw hoga! Abhi " + (10000 - coins) + " aur chahiye.");
     }
 }
 
-initGame();
+createBoard();
 </script>
 </body>
 </html>
