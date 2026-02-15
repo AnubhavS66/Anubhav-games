@@ -1,298 +1,236 @@
 <!DOCTYPE html>
-<html lang="hi">
+<html>
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Candy Blast Final</title>
+<title>Candy Blast</title>
 
 <style>
 body{
-background: radial-gradient(circle,#1a0033,#000);
-margin:0;
-font-family:sans-serif;
+background:#1a1a2e;
 color:white;
-overflow:hidden;
+font-family:Arial;
+text-align:center;
 }
 
-.header{
-display:flex;
-justify-content:space-around;
-align-items:center;
-height:60px;
-background:rgba(255,255,255,0.05);
-border-bottom:2px solid cyan;
+h1{
+color:#ffcc00;
 }
 
-.header div{
-color:cyan;
-font-size:18px;
-font-weight:bold;
-}
-
-.grid{
+#board{
 display:grid;
-grid-template-columns:repeat(7,1fr);
-grid-template-rows:repeat(9,1fr);
-gap:4px;
-padding:10px;
-height:calc(100vh - 60px);
+grid-template-columns: repeat(8,50px);
+grid-gap:5px;
+justify-content:center;
+margin-top:20px;
 }
 
 .candy{
+width:50px;
+height:50px;
+border-radius:10px;
+cursor:pointer;
+}
+
+.red{background:red;}
+.blue{background:blue;}
+.green{background:green;}
+.yellow{background:yellow;}
+.purple{background:purple;}
+
+.bomb{
+background:black;
+color:white;
+font-weight:bold;
 display:flex;
 justify-content:center;
 align-items:center;
-font-size:32px;
-background:rgba(255,255,255,0.05);
-border-radius:10px;
 }
 
-#msg{
-position:absolute;
-top:50%;
-left:50%;
-transform:translate(-50%,-50%);
-font-size:40px;
-color:yellow;
-display:none;
+#withdrawBox{
+margin-top:20px;
 }
 </style>
 </head>
+
 <body>
 
-<div class="header">
-<div id="score">Score: 0</div>
-<div id="level">Level: 1</div>
-<div id="coins">Coins: 0</div>
+<h1>Candy Blast</h1>
+
+Score: <span id="score">0</span>
+&nbsp;&nbsp;
+Level: <span id="level">1</span>
+&nbsp;&nbsp;
+Coins: <span id="coins">0</span>
+
+<div id="board"></div>
+
+<div id="withdrawBox">
+<input id="upi" placeholder="Enter UPI ID">
+<button onclick="withdraw()">Withdraw</button>
+<p id="money"></p>
 </div>
-
-<div id="msg"></div>
-
-<div class="grid" id="grid"></div>
 
 <script>
 
-const width=7;
-const height=9;
+const width = 8
+const colors = ["red","blue","green","yellow","purple"]
 
-const items=["🍭","💎","🚀","🔥","🍓"];
-const bomb="💣";
+let board = []
+let score = 0
+let level = 1
+let coins = 0
 
-const grid=document.getElementById("grid");
+let first = null
+let second = null
 
-const scoreDisplay=document.getElementById("score");
-const levelDisplay=document.getElementById("level");
-const coinsDisplay=document.getElementById("coins");
-const msg=document.getElementById("msg");
+const boardDiv = document.getElementById("board")
 
-let squares=[];
-
-let score=parseInt(localStorage.getItem("score"))||0;
-let level=parseInt(localStorage.getItem("level"))||1;
-let coins=parseInt(localStorage.getItem("coins"))||0;
-
-updateUI();
-
-function updateUI(){
-
-scoreDisplay.innerText="Score: "+score;
-levelDisplay.innerText="Level: "+level;
-coinsDisplay.innerText="Coins: "+coins;
-
-localStorage.setItem("score",score);
-localStorage.setItem("level",level);
-localStorage.setItem("coins",coins);
-
+// LOAD SAVE
+if(localStorage.save){
+let save = JSON.parse(localStorage.save)
+score = save.score
+level = save.level
+coins = save.coins
 }
 
-function showMsg(text){
+updateUI()
 
-msg.innerText=text;
-msg.style.display="block";
-
-setTimeout(()=>msg.style.display="none",800);
-
-}
-
-function levelSystem(){
-
-let newLevel=Math.floor(score/500)+1;
-
-if(newLevel>level){
-
-level=newLevel;
-
-if(level%10===0){
-
-coins+=500;
-showMsg("+500 Coins");
-
-}
-
-updateUI();
-
-}
-
-}
-
-function randomCandy(){
-
-if(Math.random()<0.1) return bomb;
-
-return items[Math.floor(Math.random()*items.length)];
-
-}
-
+// CREATE BOARD
 function createBoard(){
 
-for(let i=0;i<width*height;i++){
+boardDiv.innerHTML = ""
 
-const div=document.createElement("div");
+for(let i=0;i<width*width;i++){
 
-div.className="candy";
-div.id=i;
-div.innerHTML=randomCandy();
+let candy
 
-grid.appendChild(div);
-squares.push(div);
-
-addSwipe(div);
-
-}
-
-}
-
-let startId,startX,startY;
-
-function addSwipe(div){
-
-div.addEventListener("touchstart",(e)=>{
-
-startId=parseInt(div.id);
-startX=e.touches[0].clientX;
-startY=e.touches[0].clientY;
-
-});
-
-div.addEventListener("touchend",(e)=>{
-
-let endX=e.changedTouches[0].clientX;
-let endY=e.changedTouches[0].clientY;
-
-let dx=endX-startX;
-let dy=endY-startY;
-
-let target=startId;
-
-if(Math.abs(dx)>Math.abs(dy)){
-
-if(dx>30 && startId%width!=width-1) target=startId+1;
-if(dx<-30 && startId%width!=0) target=startId-1;
-
+if(Math.random()<0.05){
+candy = "bomb"
 }else{
+candy = colors[Math.floor(Math.random()*colors.length)]
+}
 
-if(dy>30 && startId+width<width*height) target=startId+width;
-if(dy<-30 && startId-width>=0) target=startId-width;
+board[i] = candy
+
+let div = document.createElement("div")
+div.className = "candy "+candy
+
+if(candy=="bomb") div.innerHTML="💣"
+
+div.dataset.id = i
+
+div.onclick = selectCandy
+
+boardDiv.appendChild(div)
 
 }
 
-if(target!=startId){
+}
 
-swap(startId,target);
+createBoard()
 
-handleBoard();
+// SELECT
+function selectCandy(){
+
+let id = parseInt(this.dataset.id)
+
+if(first==null){
+first=id
+this.style.border="3px solid white"
+}
+else{
+
+second=id
+
+swap(first,second)
+
+first=null
+second=null
+
+updateBoard()
 
 }
 
-});
-
 }
 
+// SWAP
 function swap(a,b){
 
-let temp=squares[a].innerHTML;
-squares[a].innerHTML=squares[b].innerHTML;
-squares[b].innerHTML=temp;
+let temp = board[a]
+board[a]=board[b]
+board[b]=temp
 
 }
 
-function explodeBomb(index){
+// UPDATE BOARD
+function updateBoard(){
 
-let area=[
-index,index-1,index+1,
-index-width,index+width,
-index-width-1,index-width+1,
-index+width-1,index+width+1
-];
-
-area.forEach(i=>{
-
-if(i>=0 && i<width*height){
-
-squares[i].innerHTML="";
+checkMatches()
+dropCandies()
+drawBoard()
+updateUI()
+save()
 
 }
 
-});
+// DRAW
+function drawBoard(){
 
-score+=150;
-showMsg("BOOM");
+boardDiv.innerHTML=""
 
-updateUI();
+for(let i=0;i<board.length;i++){
+
+let candy = board[i]
+
+let div=document.createElement("div")
+
+div.className="candy "+candy
+
+if(candy=="bomb") div.innerHTML="💣"
+
+div.dataset.id=i
+
+div.onclick=selectCandy
+
+boardDiv.appendChild(div)
 
 }
 
+}
+
+// MATCH CHECK
 function checkMatches(){
 
-let found=false;
+for(let i=0;i<board.length;i++){
 
-for(let i=0;i<width*height;i++){
-
-let val=squares[i].innerHTML;
-
-if(val==bomb){
-
-explodeBomb(i);
-found=true;
-continue;
-
-}
-
-if(val=="") continue;
-
-// row
+// horizontal
 if(i%width<width-2){
 
-if(
-squares[i+1].innerHTML==val &&
-squares[i+2].innerHTML==val
-){
+let a=i
+let b=i+1
+let c=i+2
 
-squares[i].innerHTML="";
-squares[i+1].innerHTML="";
-squares[i+2].innerHTML="";
+if(board[a]==board[b] && board[b]==board[c] && board[a]!=""){
 
-score+=60;
-found=true;
+destroy(a)
+destroy(b)
+destroy(c)
 
 }
-
 }
 
-// column
-if(i<width*(height-2)){
+// vertical
+if(i<width*(width-2)){
 
-if(
-squares[i+width].innerHTML==val &&
-squares[i+width*2].innerHTML==val
-){
+let a=i
+let b=i+width
+let c=i+width*2
 
-squares[i].innerHTML="";
-squares[i+width].innerHTML="";
-squares[i+width*2].innerHTML="";
+if(board[a]==board[b] && board[b]==board[c] && board[a]!=""){
 
-score+=60;
-found=true;
+destroy(a)
+destroy(b)
+destroy(c)
 
 }
 
@@ -300,31 +238,72 @@ found=true;
 
 }
 
-if(found){
+}
 
-updateUI();
-levelSystem();
+// DESTROY
+function destroy(i){
+
+if(board[i]=="") return
+
+if(board[i]=="bomb"){
+
+let row=Math.floor(i/width)
+let col=i%width
+
+for(let r=row-1;r<=row+1;r++){
+for(let c=col-1;c<=col+1;c++){
+
+let id=r*width+c
+
+if(id>=0 && id<64) board[id]=""
+
+}
+}
+
+score+=50
+coins+=10
+
+}
+else{
+
+board[i]=""
+
+score+=10
+coins+=2
 
 }
 
-return found;
+// LEVEL SYSTEM
+if(score>=level*200){
+level++
+
+if(level%10==0){
+coins+=500
+alert("Level 10 complete! 500 coins reward!")
+}
 
 }
 
+}
+
+// DROP
 function dropCandies(){
 
-for(let i=width*height-1;i>=0;i--){
+for(let i=board.length-1;i>=0;i--){
 
-if(squares[i].innerHTML==""){
+if(board[i]==""){
 
-if(i-width>=0){
+let above=i-width
 
-squares[i].innerHTML=squares[i-width].innerHTML;
-squares[i-width].innerHTML="";
+if(above>=0){
 
-}else{
+board[i]=board[above]
+board[above]=""
 
-squares[i].innerHTML=randomCandy();
+}
+else{
+
+board[i]=colors[Math.floor(Math.random()*colors.length)]
 
 }
 
@@ -334,27 +313,48 @@ squares[i].innerHTML=randomCandy();
 
 }
 
-function handleBoard(){
+// UI
+function updateUI(){
 
-let changed=true;
-
-let interval=setInterval(()=>{
-
-let match=checkMatches();
-
-dropCandies();
-
-if(!match){
-
-clearInterval(interval);
+document.getElementById("score").innerText=score
+document.getElementById("level").innerText=level
+document.getElementById("coins").innerText=coins
 
 }
 
-},200);
+// SAVE
+function save(){
+
+localStorage.save=JSON.stringify({
+score,level,coins
+})
 
 }
 
-createBoard();
+// WITHDRAW
+function withdraw(){
+
+let upi=document.getElementById("upi").value
+
+if(coins>=10000){
+
+let money=coins/1000
+
+document.getElementById("money").innerText=
+"Withdraw success ₹"+money+" to "+upi
+
+coins=0
+save()
+updateUI()
+
+}
+else{
+
+alert("Need 10000 coins")
+
+}
+
+}
 
 </script>
 
