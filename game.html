@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Emoji Blast Pro Max</title>
+    <title>Emoji Blast Pro Challenge</title>
     <style>
         body { 
             background: radial-gradient(circle, #1a0033, #000); margin: 0; padding: 0; 
@@ -11,10 +11,25 @@
             overflow: hidden; touch-action: none; font-family: sans-serif;
         }
         .header {
-            height: 12vh; width: 100%; display: flex; justify-content: center; align-items: center;
-            background: rgba(255, 255, 255, 0.05); border-bottom: 2px solid cyan;
+            height: 14vh; width: 100%; display: flex; justify-content: space-between; align-items: center;
+            background: rgba(255, 255, 255, 0.05); border-bottom: 2px solid cyan; padding: 0 10px; box-sizing: border-box;
         }
-        #score { font-size: 38px; font-weight: 900; color: cyan; text-shadow: 0 0 15px cyan; }
+        .stats-container { display: flex; flex-direction: column; gap: 2px; }
+        #score { font-size: 20px; font-weight: 900; color: cyan; text-shadow: 0 0 10px cyan; }
+        #level { font-size: 16px; font-weight: 700; color: #ff007f; }
+        #timerDisplay { font-size: 14px; color: yellow; font-weight: bold; }
+        
+        .right-section { display: flex; flex-direction: column; align-items: flex-end; gap: 5px; }
+        .coin-display { display: flex; align-items: center; background: rgba(0,0,0,0.5); padding: 4px 10px; border-radius: 15px; border: 1px solid gold; }
+        .coin-icon { color: gold; font-size: 18px; margin-right: 5px; }
+        #coins { color: #fff; font-weight: bold; font-size: 18px; }
+
+        .challenge-btn { 
+            background: linear-gradient(45deg, #ff007f, #8000ff); color: white; border: none; 
+            padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: bold;
+            box-shadow: 0 0 10px rgba(255,0,127,0.5); cursor: pointer;
+        }
+
         .grid { 
             flex-grow: 1; display: grid; grid-template-columns: repeat(7, 1fr); 
             grid-template-rows: repeat(9, 1fr); width: 100vw; gap: 4px; padding: 10px; 
@@ -22,30 +37,54 @@
         }
         .candy { 
             display: flex; align-items: center; justify-content: center; font-size: 10vw;
-            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transition: transform 0.1s linear;
         }
         #msg { 
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            font-size: 70px; font-weight: 900; color: #fff; z-index: 100;
+            position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%);
+            font-size: 50px; font-weight: 900; color: #fff; z-index: 100;
             text-shadow: 0 0 30px #ff007f; display: none; pointer-events: none;
-            animation: pop 0.5s ease-out;
+            animation: pop 0.3s ease-out; text-align: center; width: 80%;
         }
-        @keyframes pop { 0% { transform: translate(-50%, -50%) scale(0.2); } 100% { transform: translate(-50%, -50%) scale(1); } }
+        @keyframes pop { 0% { transform: translate(-50%, -50%) scale(0.2); opacity:0; } 100% { transform: translate(-50%, -50%) scale(1); opacity:1; } }
     </style>
 </head>
 <body>
-    <div class="header"><div id="score">SCORE: 0</div></div>
+    <div class="header">
+        <div class="stats-container">
+            <div id="score">SCORE: 0</div>
+            <div id="level">LEVEL: 1</div>
+            <div id="timerDisplay">TIME: 05:00</div>
+        </div>
+        <div class="right-section">
+            <div class="coin-display">
+                <span class="coin-icon">🪙</span>
+                <span id="coins">10</span> <!-- Default 10 coins to start -->
+            </div>
+            <button class="challenge-btn" onclick="startChallenge()">START CHALLENGE (10🪙)</button>
+        </div>
+    </div>
+    
     <div id="msg">SWEET! ✨</div>
     <div class="grid" id="grid"></div>
+
     <script>
         const grid = document.getElementById('grid');
         const scoreDisplay = document.getElementById('score');
+        const levelDisplay = document.getElementById('level');
+        const coinDisplay = document.getElementById('coins');
+        const timerDisplay = document.getElementById('timerDisplay');
         const msg = document.getElementById('msg');
+        
         const width = 7, height = 9;
         const items = ['🍭', '💎', '🚀', '🔥', '🍓', '💣', '🌟']; 
-        let squares = [], score = 0;
+        let squares = [], score = 0, currentLevel = 1, totalCoins = 10;
+        
+        // Challenge Variables
+        let challengeTimer = null;
+        let timeRemaining = 300; 
+        let challengeActive = false;
+        let startLevelOfChallenge = 1;
 
-        // Sound Logic
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         function playSfx(f, t = 'sine') {
             const o = audioCtx.createOscillator(); const g = audioCtx.createGain();
@@ -82,16 +121,83 @@
                         squares[dId].innerHTML = squares[tId].innerHTML;
                         squares[tId].innerHTML = temp;
                         if (temp === '💣') triggerBomb(tId);
-                        playSfx(400); setTimeout(checkMatches, 150);
+                        playSfx(400); setTimeout(checkMatches, 100);
                     }
                 });
             }
         }
 
+        function startChallenge() {
+            if (challengeActive) {
+                alert("Bhai, pehle wala challenge toh poora kar lo!");
+                return;
+            }
+            if (totalCoins < 10) {
+                alert("Bhai, 10 Coins (Rupe) nahi hain!");
+                return;
+            }
+
+            totalCoins -= 10;
+            coinDisplay.innerText = totalCoins;
+            challengeActive = true;
+            timeRemaining = 300;
+            startLevelOfChallenge = currentLevel;
+            showPopUp("CHALLENGE START!<br>WIN 30🪙 IN 5 MIN", 1500);
+            
+            if(challengeTimer) clearInterval(challengeTimer);
+            challengeTimer = setInterval(updateTimer, 1000);
+        }
+
+        function updateTimer() {
+            let mins = Math.floor(timeRemaining / 60);
+            let secs = timeRemaining % 60;
+            timerDisplay.innerText = `TIME: ${mins < 10 ? '0' : ''}${mins}:${secs < 10 ? '0' : ''}${secs}`;
+            
+            if (timeRemaining <= 0) {
+                clearInterval(challengeTimer);
+                challengeActive = false;
+                checkWinCondition();
+            }
+            timeRemaining--;
+        }
+
+        function checkWinCondition() {
+            // Agar 5 minute mein 5 levels badh gaye
+            if (currentLevel >= startLevelOfChallenge + 5) {
+                totalCoins += 30;
+                coinDisplay.innerText = totalCoins;
+                showPopUp("YOU WON! 🏆<br>+30 COINS ADDED", 2000);
+                playSfx(1200, 'triangle');
+            } else {
+                showPopUp("TIME UP! ❌<br>CHALLENGE FAILED", 2000);
+                playSfx(150, 'sawtooth');
+            }
+            timerDisplay.innerText = "TIME: 05:00";
+        }
+
+        function updateScore(amount) {
+            score += amount;
+            scoreDisplay.innerText = "SCORE: " + score;
+            let newLevel = Math.floor(score / 10000) + 1;
+            if (newLevel > currentLevel) {
+                currentLevel = newLevel;
+                levelDisplay.innerText = "LEVEL: " + currentLevel;
+                showPopUp("LEVEL UP! ✨", 600);
+                playSfx(1000);
+            }
+        }
+
+        function showPopUp(text, duration = 300) {
+            msg.innerHTML = text;
+            msg.style.display = 'block';
+            setTimeout(() => { msg.style.display = 'none'; }, duration);
+        }
+
         function triggerBomb(idx) {
             let area = [idx, idx-1, idx+1, idx-width, idx+width, idx-width-1, idx-width+1, idx+width-1, idx+width+1];
             area.forEach(i => { if(squares[i]) squares[i].innerHTML = items[Math.floor(Math.random()*5)]; });
-            score += 150; scoreDisplay.innerText = "SCORE: " + score; playSfx(100, 'square');
+            updateScore(150);
+            playSfx(100, 'square');
         }
 
         function checkMatches() {
@@ -101,17 +207,17 @@
                 let cur = squares[i].innerHTML;
                 if (cur === '💣' || cur === '🌟') continue;
                 if (i % width < width - 2 && r3.every(idx => squares[idx] && squares[idx].innerHTML === cur)) {
-                    score += 60; found = true;
-                    r3.forEach(idx => squares[idx].innerHTML = Math.random() > 0.9 ? '💣' : items[Math.floor(Math.random()*5)]);
+                    updateScore(60); found = true;
+                    r3.forEach(idx => squares[idx].innerHTML = items[Math.floor(Math.random()*5)]);
                 }
                 if (i < width * (height - 2) && c3.every(idx => squares[idx] && squares[idx].innerHTML === cur)) {
-                    score += 60; found = true;
-                    c3.forEach(idx => squares[idx].innerHTML = Math.random() > 0.9 ? '🌟' : items[Math.floor(Math.random()*5)]);
+                    updateScore(60); found = true;
+                    c3.forEach(idx => squares[idx].innerHTML = items[Math.floor(Math.random()*5)]);
                 }
             }
             if (found) { 
-                scoreDisplay.innerText = "SCORE: " + score; playSfx(800);
-                msg.style.display = 'block'; setTimeout(() => msg.style.display = 'none', 600);
+                playSfx(800);
+                showPopUp("SWEET! ✨", 300); 
             }
         }
         createBoard();
